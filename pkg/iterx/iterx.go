@@ -2,6 +2,39 @@ package iterx
 
 import "iter"
 
+func CollectN[T any](seq iter.Seq[T], n int) []T {
+	var result []T
+	for v := range seq {
+		result = append(result, v)
+		if len(result) == n {
+			break
+		}
+	}
+	return result
+}
+
+func CollectNFilter[T any](seq iter.Seq[T], n int, filter func(T) bool) []T {
+	var result []T
+	var itersSinceLastFilter int
+	for v := range seq {
+		if filter(v) {
+			result = append(result, v)
+			if len(result) == n {
+				break
+			}
+			itersSinceLastFilter = 0
+		}
+		itersSinceLastFilter++
+		if itersSinceLastFilter > 10000 {
+			// most of the time, payment iterators extend indefinitely, so we need to break out of
+			// the loop if we've iterated over 10000 payments without finding a match. A bit of a
+			// hack, but it's a pragmatic solution to a problem that doesn't have a clean solution.
+			break
+		}
+	}
+	return result
+}
+
 func Empty[T any]() iter.Seq[T] {
 	return func(yield func(T) bool) {}
 }

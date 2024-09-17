@@ -1,0 +1,48 @@
+package page
+
+import (
+    "fmt"
+    "github.com/deitrix/fin"
+)
+
+templ RecurringPayments(recurringPayments []fin.RecurringPayment) {
+    <article class="flex flex-col flex-1 m-0 bg-white p-4 border-2 border-solid border-gray-300">
+        <div class="flex justify-between items-center mb-4 gap-4">
+            <h2 class="m-0">Recurring Payments</h2>
+            <div class="flex gap-2">
+                <input type="search"
+                       autocomplete="off"
+                       name="q"
+                       placeholder="Search"
+                       hx-get="/"
+                       hx-trigger="input changed delay:250ms, search"
+                       hx-target="#recurringPaymentsTable"
+                       hx-select="#recurringPaymentsTable"
+                       hx-swap="outerHTML scroll:top"/>
+                <form>
+                  <button formaction="/create">Create</button>
+                </form>
+            </div>
+        </div>
+        <div class="overflow-y-auto flex-shrink">
+            @Table(templ.Attributes{"id": "recurringPaymentsTable"}) {
+                @TableRow() {
+                    @TableHeader() {Name}
+                    @TableHeader() {Next Payment}
+                }
+                for _, rp := range recurringPayments {
+                    @TableRow() {
+                        @TableData() {
+                            @Link(templ.Attributes{"href": "/recurring-payments/" + rp.ID}) { {rp.Name} }
+                        }
+                        @TableData() {
+                            if np := rp.NextPayment(); np != nil {
+                                {fmt.Sprintf("%s on %s", np.AmountGBP(), np.Date.Format("2 Jan"))}
+                            }
+                        }
+                    }
+                }
+            }
+        </div>
+    </article>
+}

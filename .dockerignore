@@ -1,0 +1,5 @@
+bin
+node_modules
+*fin.json
+web/assets/style.css
+*_templ.go

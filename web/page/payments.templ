@@ -1,0 +1,58 @@
+package page
+
+import (
+    "fmt"
+
+    "github.com/deitrix/fin"
+)
+
+type PaymentsState struct {
+    CurrentPage int
+    Query string
+}
+
+templ Payments(payments []fin.Payment, state PaymentsState, nextPage *int) {
+    <article class="flex flex-col flex-1 m-0 bg-white p-4 border-2 border-solid border-gray-300">
+        <div class="flex justify-between items-center mb-4 gap-4">
+            <h2 class="m-0">Upcoming Payments</h2>
+            <div class="flex gap-2">
+                <input type="search"
+                       autocomplete="off"
+                       name="q"
+                       placeholder="Search"
+                       hx-get="/render/payments?size=10"
+                       hx-trigger="input changed delay:250ms, search"
+                       hx-target="#paymentsContainer"
+                       hx-select="#paymentsContainer"
+                       hx-swap="outerHTML scroll:top"/>
+                <form>
+                  <button formaction="/create">Create</button>
+                </form>
+            </div>
+        </div>
+        <div id="paymentsContainer" class="overflow-y-auto flex-shrink text-center">
+            @Table(nil) {
+                @TableRow() {
+                    @TableHeader() {Date}
+                    @TableHeader() {Description}
+                    @TableHeader() {Account}
+                    @TableHeader() {Amount}
+                }
+                for _, p := range payments {
+                    @TableRow() {
+                        @TableData() { {p.Date.Format("2 Jan 2006")} }
+                        @TableData() { {p.RecurringPayment.Name} }
+                        @TableData() { {p.AccountID} }
+                        @TableData() { {p.AmountGBP()} }
+                    }
+                }
+            }
+            if nextPage != nil {
+                <button class="w-full p-2" hx-get={fmt.Sprintf("/render/payments?size=%d&q=%s", *nextPage, state.Query)}
+                        hx-select="#paymentsContainer"
+                        hx-target="closest #paymentsContainer">Load More
+                </button>
+            }
+        </div>
+    </article>
+}

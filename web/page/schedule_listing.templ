@@ -1,0 +1,12 @@
+package page
+
+import "github.com/deitrix/fin"
+
+templ ScheduleListing(schedules []fin.PaymentSchedule) {
+    <div>
+        <h2>Schedules</h2>
+        for _, s := range schedules {
+            @Schedule(s)
+        }
+    </div>
+}

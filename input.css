@@ -1,0 +1,11 @@
+@tailwind utilities;
+
+html {
+    font-family: 'Arial', sans-serif;
+    font-weight: bold;
+    @apply bg-gray-100
+}
+
+* {
+    box-sizing: border-box;
+}

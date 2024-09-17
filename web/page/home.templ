@@ -1,0 +1,25 @@
+package page
+
+import (
+    "github.com/deitrix/fin"
+)
+
+type HomeData struct {
+    RecurringPayments []fin.RecurringPayment
+    Payments []fin.Payment
+    PaymentsState PaymentsState
+    NextPayments *int
+}
+
+templ Home(data HomeData) {
+    @Page("Recurring Payments") {
+        <div class="grid grid-cols-3 grid-rows-2 flex-1 overflow-auto gap-4">
+            <div class="col-span-1 row-span-1 flex">
+                @RecurringPayments(data.RecurringPayments)
+            </div>
+            <div class="col-span-2 row-span-1 flex">
+                @Payments(data.Payments, data.PaymentsState, data.NextPayments)
+            </div>
+        </div>
+    }
+}

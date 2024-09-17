@@ -1,0 +1,27 @@
+package page
+
+import "github.com/deitrix/fin"
+
+templ Schedule(s fin.PaymentSchedule) {
+    <article>
+        <header class="flex justify-between items-center">
+            <div class="text-3xl">{s.AmountGBP()}</div>
+            <div class="text-2xl">{s.Repeat.String()}</div>
+        </header>
+        <div class="px-4 grid grid-cols-descriptions">
+            <div><strong>Account</strong></div>
+            <div class="col-span-3">{s.AccountID}</div>
+            if s.StartDate != nil {
+                <div><strong>Start</strong></div>
+                <div>{s.StartDate.Format("2 Jan 2006")}</div>
+            }
+            if s.EndDate != nil {
+                <div><strong>End</strong></div>
+                <div>{s.EndDate.Format("2 Jan 2006")}</div>
+            }
+        </div>
+        <footer class="flex justify-end">
+            <button class="bg-red-700 border-0 hover:bg-red-800">Delete</button>
+        </footer>
+    </article>
+}

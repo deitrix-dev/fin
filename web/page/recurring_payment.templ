@@ -1,0 +1,32 @@
+package page
+
+import (
+    "github.com/rickb777/date"
+    "github.com/deitrix/fin"
+)
+
+templ RecurringPayment(rp fin.RecurringPayment, payments []fin.Payment, loadMoreSince *date.Date) {
+    @Page(rp.Name) {
+        <div class="header">
+            <div class="col"><h2>{rp.Name}</h2></div>
+            <div class="col">
+                <a role="button"
+                   class="bg-red-700 border-0 hover:bg-red-800"
+                   href={templ.URL("/recurring-payments/"+rp.ID+"/delete")}>Delete</a>
+            </div>
+        </div>
+        <div class="card" style="margin-bottom: 1rem">
+            <div class="card-body">
+                if rp.Debt {
+                    <div>Debt</div>
+                } else {
+                    <div>Not debt</div>
+                }
+            </div>
+        </div>
+        <div class="grid">
+            @ScheduleListing(rp.Schedules)
+            @PaymentListing(payments, loadMoreSince)
+        </div>
+    }
+}

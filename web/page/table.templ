@@ -1,0 +1,17 @@
+package page
+
+templ Table(attrs templ.Attributes) {
+    <table class="w-full" {attrs...}>{children...}</table>
+}
+
+templ TableRow() {
+    <tr class="odd:bg-white even:bg-gray-200">{children...}</tr>
+}
+
+templ TableHeader() {
+    <th class="p-4 bg-gray-500 text-white">{children...}</th>
+}
+
+templ TableData() {
+    <td class="p-4">{children...}</td>
+}

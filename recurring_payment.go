@@ -1,6 +1,7 @@
 package fin
 
 import (
+	"fmt"
 	"iter"
 
 	"github.com/deitrix/fin/pkg/iterx"
@@ -14,6 +15,10 @@ type PaymentSchedule struct {
 	Amount    int        `json:"amount"`
 	AccountID string     `json:"accountId"`
 	Account   *Account   `json:"account,omitempty"`
+}
+
+func (s PaymentSchedule) AmountGBP() string {
+	return fmt.Sprintf("£%.2f", float64(s.Amount)/100)
 }
 
 func (s PaymentSchedule) PaymentsSince(since date.Date) iter.Seq[Payment] {
@@ -50,15 +55,26 @@ type RecurringPayment struct {
 	Schedules []PaymentSchedule `json:"schedules"`
 }
 
-func (rp *RecurringPayment) PaymentsSince(since date.Date) iter.Seq[Payment] {
+func (rp *RecurringPayment) NextPayment() *Payment {
+	for payment := range rp.PaymentsSince(date.Today()) {
+		return &payment
+	}
+	return nil
+}
+
+func (rp RecurringPayment) PaymentsSince(since date.Date) iter.Seq[Payment] {
 	if !rp.Enabled {
 		return iterx.Empty[Payment]()
 	}
 	seqs := make([]iter.Seq[Payment], len(rp.Schedules))
 	for i, s := range rp.Schedules {
-		seqs[i] = withRecurringPaymentSeq(rp, s.PaymentsSince(since))
+		seqs[i] = withRecurringPaymentSeq(&rp, s.PaymentsSince(since))
 	}
 	return iterx.JoinFunc(seqs, Payment.Compare)
+}
+
+func (rp RecurringPayment) PaymentsSinceN(since date.Date, n int) []Payment {
+	return iterx.CollectN(rp.PaymentsSince(since), n)
 }
 
 func withRecurringPaymentSeq(rp *RecurringPayment, seq iter.Seq[Payment]) iter.Seq[Payment] {
@@ -79,4 +95,12 @@ func PaymentsSince(rps []RecurringPayment, since date.Date) iter.Seq[Payment] {
 		seqs[i] = rp.PaymentsSince(since)
 	}
 	return iterx.JoinFunc(seqs, Payment.Compare)
+}
+
+func PaymentsSinceN(rps []RecurringPayment, since date.Date, n int) []Payment {
+	return iterx.CollectN(PaymentsSince(rps, since), n)
+}
+
+func PaymentsSinceNFilter(rps []RecurringPayment, since date.Date, n int, filter func(Payment) bool) []Payment {
+	return iterx.CollectNFilter(PaymentsSince(rps, since), n, filter)
 }

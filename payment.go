@@ -2,6 +2,7 @@ package fin
 
 import (
 	"cmp"
+	"fmt"
 
 	"github.com/deitrix/fin/pkg/pointer"
 	"github.com/rickb777/date"
@@ -21,4 +22,8 @@ func (a Payment) Compare(b Payment) int {
 		cmp.Compare(a.Date.DaysSinceEpoch(), b.Date.DaysSinceEpoch()),
 		cmp.Compare(pointer.Zero(a.RecurringPayment).Name, pointer.Zero(b.RecurringPayment).Name),
 	)
+}
+
+func (a Payment) AmountGBP() string {
+	return fmt.Sprintf("£%.2f", float64(a.Amount)/100)
 }

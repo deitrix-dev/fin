@@ -2,6 +2,7 @@ package fin
 
 import (
 	"cmp"
+	"fmt"
 	"iter"
 	"slices"
 	"time"
@@ -55,6 +56,17 @@ type Repeat struct {
 	Weekday    Weekday `json:"weekday,omitempty"`
 	Multiplier int     `json:"multiplier,omitempty"`
 	Offset     int     `json:"offset,omitempty"`
+}
+
+func (r Repeat) String() string {
+	switch r.Every {
+	case Month:
+		if r.Multiplier > 1 {
+			return fmt.Sprintf("every %d months on the %d%s", r.Multiplier, r.Day, dateOrdinal(r.Day))
+		}
+		return fmt.Sprintf("monthly on %s", dateOrdinal(r.Day))
+	}
+	return ""
 }
 
 // add adds n steps to the given date and returns the new date. It assumes that the given date
@@ -208,4 +220,21 @@ func monthsDate(m int, day int) date.Date {
 	year := 1970 + m/12
 	month := time.Month(m%12 + 1)
 	return date.New(year, month, normalizeMonthDay(year, month, day))
+}
+
+func dateOrdinal(n int) string {
+	if n >= 11 && n <= 13 {
+		return fmt.Sprintf("%dth", n)
+	}
+
+	switch n % 10 {
+	case 1:
+		return fmt.Sprintf("%dst", n)
+	case 2:
+		return fmt.Sprintf("%dnd", n)
+	case 3:
+		return fmt.Sprintf("%drd", n)
+	default:
+		return fmt.Sprintf("%dth", n)
+	}
 }
