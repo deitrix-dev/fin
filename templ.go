@@ -1,2 +1,2 @@
-//go:generate go run github.com/a-h/templ/cmd/templ generate
+//go:generate go run -mod=mod github.com/a-h/templ/cmd/templ generate
 package fin

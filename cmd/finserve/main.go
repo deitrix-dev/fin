@@ -1,15 +1,19 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"log/slog"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
 	"github.com/a-h/templ"
 	"github.com/deitrix/fin"
+	"github.com/deitrix/fin/auth"
 	"github.com/deitrix/fin/pkg/pointer"
 	"github.com/deitrix/fin/store/file"
 	"github.com/deitrix/fin/web/assets"
@@ -19,17 +23,52 @@ import (
 	"github.com/rickb777/date"
 )
 
+type config struct {
+	Auth auth.Config `json:"auth"`
+}
+
+func readConfig(path string) (config, error) {
+	bs, err := os.ReadFile(path)
+	if err != nil {
+		return config{}, fmt.Errorf("reading config file: %w", err)
+	}
+	var c config
+	if err := json.Unmarshal(bs, &c); err != nil {
+		return config{}, fmt.Errorf("unmarshalling config file: %w", err)
+	}
+	return c, nil
+}
+
 func main() {
+	slog.SetLogLoggerLevel(slog.LevelDebug)
+
+	configPath := flag.String("config", "config.json", "path to config file")
+	flag.Parse()
+	if *configPath == "" {
+		log.Fatal("config file path is required")
+	}
+
+	conf, err := readConfig(*configPath)
+	if err != nil {
+		log.Fatalf("reading config: %v", err)
+	}
+
 	store := file.NewStore("fin.json")
 
 	router := chi.NewRouter()
 
+	router.Use(auth.Verify(conf.Auth))
+
 	router.Get("/assets/style.css", func(w http.ResponseWriter, r *http.Request) {
-		//w.Header().Set("Cache-Control", "no-cache")
 		http.ServeFileFS(w, r, assets.FS, "style.css")
 	})
 
 	router.Get("/", func(w http.ResponseWriter, r *http.Request) {
+		var email string
+		profile, ok := auth.ProfileFromContext(r.Context())
+		if ok {
+			email = profile["email"].(string)
+		}
 		rps, err := store.RecurringPayments(r.Context())
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -48,6 +87,7 @@ func main() {
 				CurrentPage: 10,
 			},
 			NextPayments: nextPayments,
+			Email:        email,
 		}
 		if q := r.URL.Query().Get("q"); q != "" {
 			var filtered []fin.RecurringPayment
@@ -91,6 +131,11 @@ func main() {
 	})
 
 	router.Get("/recurring-payments/{id}", func(w http.ResponseWriter, r *http.Request) {
+		var email string
+		profile, ok := auth.ProfileFromContext(r.Context())
+		if ok {
+			email = profile["email"].(string)
+		}
 		id := chi.URLParam(r, "id")
 		rp, err := store.RecurringPayment(r.Context(), id)
 		if err != nil {
@@ -112,11 +157,16 @@ func main() {
 			loadMoreSince = &payments[5].Date
 			payments = payments[:5]
 		}
-		render(w, r, page.RecurringPayment(rp, payments, loadMoreSince))
+		render(w, r, page.RecurringPayment(email, rp, payments, loadMoreSince))
 	})
 
 	router.Get("/create", func(w http.ResponseWriter, r *http.Request) {
-		render(w, r, page.RecurringPaymentCreate())
+		var email string
+		profile, ok := auth.ProfileFromContext(r.Context())
+		if ok {
+			email = profile["email"].(string)
+		}
+		render(w, r, page.RecurringPaymentCreate(email))
 	})
 
 	router.Post("/create", func(w http.ResponseWriter, r *http.Request) {

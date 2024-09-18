@@ -5,8 +5,8 @@ import (
     "github.com/deitrix/fin"
 )
 
-templ RecurringPayment(rp fin.RecurringPayment, payments []fin.Payment, loadMoreSince *date.Date) {
-    @Page(rp.Name) {
+templ RecurringPayment(email string, rp fin.RecurringPayment, payments []fin.Payment, loadMoreSince *date.Date) {
+    @Page(email, rp.Name) {
         <div class="header">
             <div class="col"><h2>{rp.Name}</h2></div>
             <div class="col">
