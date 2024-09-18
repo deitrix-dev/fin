@@ -12,6 +12,8 @@ RUN npx tailwindcss -i input.css -o web/assets/style.css
 
 FROM golang:1.23 as build
 
+RUN useradd -u 10001 fin
+
 WORKDIR /opt/fin
 
 COPY go.mod go.sum ./
@@ -30,6 +32,9 @@ FROM scratch
 
 WORKDIR /opt/fin
 
+COPY --from=build /etc/passwd /etc/passwd
 COPY --from=build /opt/fin/bin/finserve /opt/fin/bin/finserve
+
+USER fin
 
 ENTRYPOINT ["/opt/fin/bin/finserve"]

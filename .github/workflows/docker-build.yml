@@ -1,3 +1,4 @@
+# Pulled from https://docs.github.com/en/actions/use-cases-and-examples/publishing-packages/publishing-docker-images
 name: Create and publish a Docker image
 
 # Configures this workflow to run every time a change is pushed to the branch called `release`.
