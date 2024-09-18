@@ -13,7 +13,12 @@ templ Page(email, title string) {
         <div class="flex flex-col h-[100vh] p-4 gap-2 m-auto">
             <div class="flex justify-between">
                 <a href="/"><h1 class="m-0">Fin</h1></a>
-                <span>{email}</span>
+                if email != "" {
+                    <div>
+                        <span class="mr-2">{email}</span>
+                        <a href="/cdn-cgi/access/logout">Logout</a>
+                    </div>
+                }
             </div>
             { children... }
         </div>
