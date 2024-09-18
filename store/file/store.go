@@ -18,8 +18,8 @@ type db struct {
 	RecurringPayments []fin.RecurringPayment `json:"recurringPayments"`
 }
 
-func NewStore(file string) Store {
-	return Store{file: file}
+func NewStore(file string) *Store {
+	return &Store{file: file}
 }
 
 func (s *Store) RecurringPayment(_ context.Context, id string) (fin.RecurringPayment, error) {
