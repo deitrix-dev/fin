@@ -5,28 +5,31 @@ import (
     "github.com/deitrix/fin"
 )
 
-templ RecurringPayment(email string, rp fin.RecurringPayment, payments []fin.Payment, loadMoreSince *date.Date) {
-    @Page(email, rp.Name) {
-        <div class="header">
-            <div class="col"><h2>{rp.Name}</h2></div>
-            <div class="col">
-                <a role="button"
-                   class="bg-red-700 border-0 hover:bg-red-800"
-                   href={templ.URL("/recurring-payments/"+rp.ID+"/delete")}>Delete</a>
-            </div>
-        </div>
-        <div class="card" style="margin-bottom: 1rem">
-            <div class="card-body">
-                if rp.Debt {
-                    <div>Debt</div>
-                } else {
-                    <div>Not debt</div>
-                }
-            </div>
-        </div>
-        <div class="grid">
-            @ScheduleListing(rp.Schedules)
-            @PaymentListing(payments, loadMoreSince)
+templ RecurringPayment(rp fin.RecurringPayment, payments []fin.Payment, loadMoreSince *date.Date) {
+    @Page(rp.Name) {
+        <div class="grid grid-cols-3 flex-1 overflow-auto gap-4">
+            <article class="flex flex-col flex-1 m-0 bg-white p-4 border-2 border-solid border-gray-300">
+                <div class="flex justify-between items-center">
+                    <h2 class="m-0">{rp.Name}</h2>
+                    <form action={templ.URL("/recurring-payments/"+rp.ID+"/delete")}>
+                        <input type="submit" value="Delete" />
+                    </form>
+                </div>
+                <sub class="text-gray-500 mt-4">Recurring Payment</sub>
+                <div hx-get={"/recurring-payments/"+rp.ID+"/form"} hx-trigger="load" hx-swap="outerHTML"></div>
+                <sub class="text-gray-500 mt-4">Schedules</sub>
+            </article>
         </div>
     }
+}
+
+templ RecurringPaymentForm(rp fin.RecurringPayment) {
+    <form hx-post={"/recurring-payments/"+rp.ID+"/form"} method="post" hx-trigger="change" hx-swap="outerHTML">
+        <div class="mt-2 grid grid-cols-4 font-normal">
+            <label for="enabled"><strong>Enabled</strong></label>
+            <input type="checkbox" id="enabled" name="enabled" checked?={rp.Enabled} />
+            <label for="debt"><strong>Debt</strong></label>
+            <input type="checkbox" id="debt" name="debt" checked?={rp.Debt} />
+        </div>
+    </form>
 }

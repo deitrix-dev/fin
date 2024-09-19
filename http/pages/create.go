@@ -4,19 +4,13 @@ import (
 	"net/http"
 
 	"github.com/deitrix/fin"
-	"github.com/deitrix/fin/auth"
 	"github.com/deitrix/fin/web/page"
 	"github.com/google/uuid"
 )
 
-func Create(store fin.Store) http.HandlerFunc {
+func Create() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var email string
-		profile, ok := auth.ProfileFromContext(r.Context())
-		if ok {
-			email = profile["email"].(string)
-		}
-		render(w, r, page.RecurringPaymentCreate(email))
+		render(w, r, page.RecurringPaymentCreate())
 	}
 }
 

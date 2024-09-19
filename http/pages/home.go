@@ -5,7 +5,6 @@ import (
 	"strings"
 
 	"github.com/deitrix/fin"
-	"github.com/deitrix/fin/auth"
 	"github.com/deitrix/fin/pkg/pointer"
 	"github.com/deitrix/fin/web/page"
 	"github.com/rickb777/date"
@@ -13,11 +12,6 @@ import (
 
 func Home(store fin.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var email string
-		profile, ok := auth.ProfileFromContext(r.Context())
-		if ok {
-			email = profile["email"].(string)
-		}
 		rps, err := store.RecurringPayments(r.Context())
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -36,7 +30,6 @@ func Home(store fin.Store) http.HandlerFunc {
 				CurrentPage: 10,
 			},
 			NextPayments: nextPayments,
-			Email:        email,
 		}
 		if q := r.URL.Query().Get("q"); q != "" {
 			var filtered []fin.RecurringPayment

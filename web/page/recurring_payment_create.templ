@@ -1,20 +1,20 @@
 package page
 
-templ RecurringPaymentCreate(email string) {
-    @Page(email, "Fin - Create Recurring Payment") {
-        <div class="flex justify-center items-center">
-            <div class="flex flex-col justify-center items-center">
-                <div class="header">
-                    <h1 class="text-center">Create Recurring Payment</h1>
+templ RecurringPaymentCreate() {
+    @Page("Fin - Create Recurring Payment") {
+        <div class="flex flex-col justify-center items-center">
+            <article class="flex flex-col flex-1 m-0 bg-white p-8 border-2 border-solid border-gray-300 w-[500px]">
+                <div class="mb-8">
+                    <h1 class="text-center m-0">Create Recurring Payment</h1>
                 </div>
-                <form action="/create" method="post" class="w-full">
+                <form action="/create" method="post">
                     <div class="flex flex-col gap-4">
-                        <label>Name<input type="text" class="block w-full" autocomplete="off" id="name" name="name" required></label>
+                        <label>Name<input type="text" class="block w-full text-lg p-2 mt-1" autocomplete="off" id="name" name="name" required></label>
                         <label for="debt">Debt <input type="checkbox" class="form-check-input" id="debt" name="debt"></label>
                         <button type="submit" class="p-2">Create</button>
                     </div>
                 </form>
-            </div>
+            </article>
         </div>
     }
 }

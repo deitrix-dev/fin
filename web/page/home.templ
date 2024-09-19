@@ -9,16 +9,15 @@ type HomeData struct {
     Payments []fin.Payment
     PaymentsState PaymentsState
     NextPayments *int
-    Email string
 }
 
 templ Home(data HomeData) {
-    @Page(data.Email, "Recurring Payments") {
-        <div class="grid grid-cols-3 grid-rows-2 flex-1 overflow-auto gap-4">
-            <div class="col-span-1 row-span-1 flex">
+    @Page("Recurring Payments") {
+        <div class="grid grid-cols-3 flex-1 overflow-auto gap-4">
+            <div class="flex">
                 @RecurringPayments(data.RecurringPayments)
             </div>
-            <div class="col-span-2 row-span-1 flex">
+            <div class="col-span-2 flex">
                 @Payments(data.Payments, data.PaymentsState, data.NextPayments)
             </div>
         </div>

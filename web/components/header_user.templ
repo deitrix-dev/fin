@@ -1,0 +1,10 @@
+package components
+
+templ HeaderUser(email string) {
+    if email != "" {
+        <div class="flex gap-4">
+            <span>{email}</span>
+            @Link(templ.Attributes{"href": "/cdn-cgi/access/logout"}) { Logout }
+        </div>
+    }
+}

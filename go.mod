@@ -5,7 +5,10 @@ go 1.23.0
 require (
 	github.com/a-h/templ v0.2.778
 	github.com/coreos/go-oidc/v3 v3.11.0
+	github.com/deitrix/sqlg v0.2.0
+	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/go-chi/chi/v5 v5.1.0
+	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/rickb777/date v1.21.1
 )
