@@ -1,0 +1,80 @@
+services:
+  fin:
+    build: .
+    depends_on:
+      mysql:
+        condition: service_started
+      atlas:
+        condition: service_completed_successfully
+    volumes:
+    - ./config.json:/var/run/fin/config.json
+    ports:
+    - "8080:8080"
+    command:
+    - "--config"
+    - "/var/run/fin/config.json"
+    restart: always
+
+  mysql:
+    image: mysql:latest
+    volumes:
+    - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: fin
+    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 3s
+      retries: 5
+      interval: 5s
+      start_period: 5s
+
+  mysql-dev:
+    image: mysql:latest
+    container_name: fin-mysql-dev
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: fin
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 3s
+      retries: 5
+      interval: 5s
+      start_period: 5s
+
+  kill-dev:
+    image: docker:dind
+    command: ["docker", "kill", "fin-mysql-dev"]
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      mysql-dev:
+        condition: service_healthy
+      atlas:
+        condition: service_completed_successfully
+
+  atlas:
+    build:
+      dockerfile: atlas.Dockerfile
+    depends_on:
+      mysql:
+        condition: service_healthy
+      mysql-dev:
+        condition: service_healthy
+    volumes:
+    - /var/run/docker.sock:/var/run/docker.sock
+    - ./store/mysql/schema.sql:/data/schema.sql
+    command:
+    - "schema"
+    - "apply"
+    - "--to"
+    - "file:///data/schema.sql"
+    - "--url"
+    - "mysql://root:1234@mysql/fin"
+    - "--dev-url"
+    - "mysql://root:1234@mysql-dev/fin"
+    - "--auto-approve"
+
+volumes:
+  db_data:

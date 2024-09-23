@@ -1,12 +1,11 @@
-package pages
+package handlers
 
 import (
 	"net/http"
 
 	"github.com/deitrix/fin"
-	"github.com/deitrix/fin/web/page"
+	"github.com/deitrix/fin/ui/components"
 	"github.com/go-chi/chi/v5"
-	"github.com/rickb777/date"
 )
 
 func RecurringPayment(store fin.Store) http.HandlerFunc {
@@ -17,22 +16,9 @@ func RecurringPayment(store fin.Store) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		since := date.Today()
-		if q := r.URL.Query().Get("since"); q != "" {
-			var err error
-			since, err = date.ParseISO(q)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-		}
-		payments := rp.PaymentsSinceN(since, 6)
-		var loadMoreSince *date.Date
-		if len(payments) == 6 {
-			loadMoreSince = &payments[5].Date
-			payments = payments[:5]
-		}
-		render(w, r, page.RecurringPayment(rp, payments, loadMoreSince))
+		renderGomp(w, r, components.Layout(rp.Name,
+			components.RecurringPayment(rp),
+		))
 	}
 }
 
@@ -43,7 +29,7 @@ func RecurringPaymentUpdateForm(store fin.Store) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		render(w, r, page.RecurringPaymentForm(rp))
+		renderGomp(w, r, components.RecurringPaymentForm(rp))
 	}
 }
 
@@ -65,7 +51,8 @@ func RecurringPaymentHandleUpdateForm(store fin.Store) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		render(w, r, page.RecurringPaymentForm(rp))
+		w.Header().Set("HX-Trigger", "reload")
+		renderGomp(w, r, components.RecurringPaymentForm(rp))
 	}
 }
 

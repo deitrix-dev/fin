@@ -4,7 +4,7 @@ styles:
 templ:
 	TEMPL_EXPERIMENT=rawgo go run github.com/a-h/templ/cmd/templ generate
 
-build: templ
+build:
 	CGO_ENABLED=0 go build -o ./bin/finserve ./cmd/finserve
 
 finserve: styles build

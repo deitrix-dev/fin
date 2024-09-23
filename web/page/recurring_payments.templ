@@ -5,7 +5,7 @@ import (
     "github.com/deitrix/fin"
 )
 
-templ RecurringPayments(recurringPayments []fin.RecurringPayment) {
+templ RecurringPayments(recurringPayments []fin.RecurringPayment, q string) {
     <article class="flex flex-col flex-1 m-0 bg-white p-4 border-2 border-solid border-gray-300">
         <div class="flex justify-between items-center mb-4 gap-4">
             <h2 class="m-0">Recurring Payments</h2>
@@ -13,12 +13,13 @@ templ RecurringPayments(recurringPayments []fin.RecurringPayment) {
                 <input type="search"
                        autocomplete="off"
                        name="q"
+                       value={q}
                        placeholder="Search"
-                       hx-get="/"
-                       hx-trigger="input changed delay:250ms, search"
+                       hx-get="/?pushUrl=true"
+                       hx-trigger="input changed delay:500ms, search"
                        hx-target="#recurringPaymentsTable"
                        hx-select="#recurringPaymentsTable"
-                       hx-swap="outerHTML scroll:top"/>
+                       hx-swap="outerHTML scroll:top">
                 <form>
                   <button formaction="/create">Create</button>
                 </form>

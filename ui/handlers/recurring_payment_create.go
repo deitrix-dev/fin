@@ -1,20 +1,22 @@
-package pages
+package handlers
 
 import (
 	"net/http"
 
 	"github.com/deitrix/fin"
-	"github.com/deitrix/fin/web/page"
+	"github.com/deitrix/fin/ui/components"
 	"github.com/google/uuid"
 )
 
-func Create() http.HandlerFunc {
+func RecurringPaymentCreate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		render(w, r, page.RecurringPaymentCreate())
+		renderGomp(w, r, components.Layout("Create Recurring Payment",
+			components.RecurringPaymentCreate(),
+		))
 	}
 }
 
-func CreatePOST(store fin.Store) http.HandlerFunc {
+func RecurringPaymentCreateForm(store fin.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

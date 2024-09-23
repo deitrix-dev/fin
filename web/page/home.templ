@@ -7,19 +7,17 @@ import (
 type HomeData struct {
     RecurringPayments []fin.RecurringPayment
     Payments []fin.Payment
-    PaymentsState PaymentsState
     NextPayments *int
+    Query string
 }
 
 templ Home(data HomeData) {
     @Page("Recurring Payments") {
-        <div class="grid grid-cols-3 flex-1 overflow-auto gap-4">
-            <div class="flex">
-                @RecurringPayments(data.RecurringPayments)
+        <div class="grid grid-cols-3 grid-rows flex-1 overflow-auto gap-2">
+            <div class="flex overflow-auto">
+                @RecurringPayments(data.RecurringPayments, data.Query)
             </div>
-            <div class="col-span-2 flex">
-                @Payments(data.Payments, data.PaymentsState, data.NextPayments)
-            </div>
+            <div class="col-span-2 flex overflow-auto" hx-get="/api/payments" hx-trigger="load"></div>
         </div>
     }
 }

@@ -5,11 +5,15 @@ go 1.23.0
 require (
 	github.com/a-h/templ v0.2.778
 	github.com/coreos/go-oidc/v3 v3.11.0
+	github.com/davecgh/go-spew v1.1.1
 	github.com/deitrix/sqlg v0.2.0
 	github.com/doug-martin/goqu/v9 v9.19.0
 	github.com/go-chi/chi/v5 v5.1.0
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.6.0
+	github.com/maragudk/gomponents v0.20.5
+	github.com/maragudk/gomponents-htmx v0.5.0
 	github.com/rickb777/date v1.21.1
 )
 
@@ -19,6 +23,7 @@ require (
 	github.com/a-h/protocol v0.0.0-20240704131721-1e461c188041 // indirect
 	github.com/andybalholm/brotli v1.1.0 // indirect
 	github.com/andybalholm/cascadia v1.3.1 // indirect
+	github.com/asaskevich/govalidator v0.0.0-20200108200545-475eaeb16496 // indirect
 	github.com/cenkalti/backoff/v4 v4.3.0 // indirect
 	github.com/cli/browser v1.3.0 // indirect
 	github.com/fatih/color v1.16.0 // indirect

@@ -4,3 +4,5 @@ node_modules
 web/assets/style.css
 *_templ.go
 config.json
+.db_password
+.db_root_password

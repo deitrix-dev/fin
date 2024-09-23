@@ -2,6 +2,17 @@ package iterx
 
 import "iter"
 
+func CollectErr[T any](seq iter.Seq2[T, error]) ([]T, error) {
+	var result []T
+	for v, err := range seq {
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, v)
+	}
+	return result, nil
+}
+
 func CollectN[T any](seq iter.Seq[T], n int) []T {
 	var result []T
 	for v := range seq {
@@ -11,6 +22,20 @@ func CollectN[T any](seq iter.Seq[T], n int) []T {
 		}
 	}
 	return result
+}
+
+func Skip[T any](seq iter.Seq[T], n int) iter.Seq[T] {
+	return func(yield func(T) bool) {
+		i := 0
+		for v := range seq {
+			if i >= n {
+				if !yield(v) {
+					break
+				}
+			}
+			i++
+		}
+	}
 }
 
 func CollectNFilter[T any](seq iter.Seq[T], n int, filter func(T) bool) []T {

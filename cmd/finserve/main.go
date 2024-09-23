@@ -12,8 +12,8 @@ import (
 
 	"github.com/a-h/templ"
 	"github.com/deitrix/fin/auth"
-	"github.com/deitrix/fin/http/api"
-	"github.com/deitrix/fin/http/pages"
+	"github.com/deitrix/fin/ui/api"
+	"github.com/deitrix/fin/ui/handlers"
 	"github.com/deitrix/fin/web/assets"
 	"github.com/deitrix/fin/web/page"
 	"github.com/deitrix/sqlg"
@@ -95,13 +95,13 @@ func main() {
 		http.ServeFileFS(w, r, assets.FS, "style.css")
 	})
 
-	router.Get("/", pages.Home(store))
-	router.Get("/recurring-payments/{id}", pages.RecurringPayment(store))
-	router.Get("/recurring-payments/{id}/form", pages.RecurringPaymentUpdateForm(store))
-	router.Post("/recurring-payments/{id}/form", pages.RecurringPaymentHandleUpdateForm(store))
-	router.Get("/recurring-payments/{id}/delete", pages.RecurringPaymentDelete(store))
-	router.Get("/create", pages.Create())
-	router.Post("/create", pages.CreatePOST(store))
+	router.Get("/", handlers.Home(store))
+	router.Get("/recurring-payments/{id}", handlers.RecurringPayment(store))
+	router.Get("/recurring-payments/{id}/form", handlers.RecurringPaymentUpdateForm(store))
+	router.Post("/recurring-payments/{id}/form", handlers.RecurringPaymentHandleUpdateForm(store))
+	router.Get("/recurring-payments/{id}/delete", handlers.RecurringPaymentDelete(store))
+	router.Get("/create", handlers.RecurringPaymentCreate())
+	router.Post("/create", handlers.RecurringPaymentCreateForm(store))
 	router.Get("/form/schedule/{recurringPaymentID}", func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseForm(); err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -136,8 +136,13 @@ func main() {
 		}
 		render(w, r, page.CreateSchedule(chi.URLParam(r, "recurringPaymentID"), values))
 	})
-
+	router.Get("/recurring-payments/{id}/schedules/{index}/delete", handlers.ScheduleDelete(store))
+	router.Get("/recurring-payments/{id}/schedules/new", handlers.ScheduleForm(store))
+	router.Post("/recurring-payments/{id}/schedules/new", handlers.ScheduleHandleForm(store))
+	router.Get("/recurring-payments/{id}/schedules/{index}", handlers.ScheduleForm(store))
+	router.Post("/recurring-payments/{id}/schedules/{index}", handlers.ScheduleHandleForm(store))
 	router.Get("/api/payments", api.Payments(store))
+	router.Get("/api/payments-for-schedule", api.PaymentsForSchedule)
 	router.Get("/api/header-user", api.HeaderUser(conf.SimulateUser))
 
 	log.Fatal(http.ListenAndServe(":8080", router))
