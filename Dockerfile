@@ -40,5 +40,6 @@ USER fin
 WORKDIR /opt/fin
 
 COPY --from=build --chown=fin /opt/fin/bin/finserve /opt/fin/bin/finserve
+COPY --from=build --chown=fin /opt/fin/store/mysql/schema.sql /opt/fin/store/mysql/schema.sql
 
 ENTRYPOINT ["/opt/fin/bin/finserve"]
