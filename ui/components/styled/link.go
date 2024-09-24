@@ -30,7 +30,7 @@ func Link(opt Options, children ...g.Node) g.Node {
 	}
 
 	// text color
-	class := "no-underline"
+	class := "text-center no-underline"
 	switch {
 	case opt.Has(Text) || opt.Has(Bordered):
 		class += " text-" + color + "-600 hover:text-" + color + "-500"
@@ -65,5 +65,5 @@ func Link(opt Options, children ...g.Node) g.Node {
 		}
 	}
 
-	return html.A(g.If(class != "", html.Class(class)), g.Group(children))
+	return html.A(html.Class(class), g.Group(children))
 }

@@ -8,6 +8,7 @@ import (
 	"github.com/deitrix/fin/pkg/form"
 	"github.com/deitrix/fin/pkg/iterx"
 	"github.com/deitrix/fin/pkg/pointer"
+	"github.com/deitrix/fin/ui"
 	"github.com/deitrix/fin/ui/components"
 )
 
@@ -99,7 +100,7 @@ func PaymentsForSchedule(w http.ResponseWriter, r *http.Request) {
 		payments = payments[:25]
 	}
 	fetchURL := "/api/payments-for-schedule?oob=true&" + form.Encode(formFields).Encode()
-	renderGomp(w, r, components.Payments(components.PaymentsInputs{
+	ui.Render(w, r, components.Payments(components.PaymentsInputs{
 		Header:   "Payments Preview",
 		Payments: payments,
 		FetchURL: fetchURL,

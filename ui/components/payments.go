@@ -24,15 +24,15 @@ type PaymentsInputs struct {
 
 func Payments(in PaymentsInputs) Node {
 	return Article(Class("flex flex-col flex-1 m-0 bg-white p-4 border-2 border-solid border-gray-300"),
-		Div(Class("flex justify-between items-center mb-4 gap-4"),
+		Div(Class("flex items-center mb-4 gap-4"),
 			H2(Class("m-0"), Text(in.Header)),
 			If(in.Search,
-				Div(Class("flex gap-2"),
-					Input(Type("search"), AutoComplete("off"), Name("q"), Placeholder("Search"),
+				Div(Class("flex gap-2 flex-grow justify-end"),
+					Input(Class("px-2 flex-grow max-w-[400px]"), Type("search"), AutoComplete("off"), Name("q"), Placeholder("Search"),
 						hx.Get(removeQuery(in.FetchURL, "q")), hx.Trigger("input changed, search"),
 						hx.Target("#paymentsContainer"), hx.Select("#paymentsContainer"),
 						hx.Swap("outerHTML scroll:top")),
-					Form(Button(Action("/create"), Text("Create"))),
+					s.Link(s.Primary.Sm(), Href("/payments/new"), Text("Create")),
 				),
 			),
 		),
@@ -46,22 +46,23 @@ func Payments(in PaymentsInputs) Node {
 				),
 				TBody(
 					ID("paymentsContainer"),
-					Group(Map(in.Payments, func(payment fin.Payment) Node {
+					Map(in.Payments, func(payment fin.Payment) Node {
 						return s.Tr(
 							s.Td(Textf("%s", payment.Date.Format("Mon 2 Jan 2006"))),
 							If(in.Description, s.Td(Text(pointer.Zero(payment.RecurringPayment).Name))),
 							s.Td(Text(payment.AccountID)),
 							s.Td(Textf("£%.2f", float64(payment.Amount)/100)),
 						)
-					})),
+					}),
 				),
 			),
 		),
-		Div(
+		Div(Class("flex flex-col mt-2"),
 			ID("loadMore"),
 			If(in.OOB, hx.SwapOOB("outerHTML")),
 			Iff(in.NextPage != nil, func() Node {
-				return Button(Class("w-full p-2"),
+				return s.Link(s.Primary.Bordered(),
+					Href("#"),
 					hx.Swap("beforeend"),
 					hx.Get(addQuery(in.FetchURL, "offset", *in.NextPage)),
 					hx.Select("#paymentsContainer>tr"),

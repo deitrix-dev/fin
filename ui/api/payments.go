@@ -10,6 +10,7 @@ import (
 	"github.com/deitrix/fin"
 	"github.com/deitrix/fin/pkg/iterx"
 	"github.com/deitrix/fin/pkg/pointer"
+	"github.com/deitrix/fin/ui"
 	"github.com/deitrix/fin/ui/components"
 )
 
@@ -57,7 +58,7 @@ func Payments(store fin.Store) http.HandlerFunc {
 		}
 
 		fetchURL := fmt.Sprintf("/api/payments?oob=true&q=%s&offset=%d&recurringPayment=%s", q, offset+25, recurringPaymentID)
-		if err := components.Payments(components.PaymentsInputs{
+		ui.Render(w, r, components.Payments(components.PaymentsInputs{
 			Header:      "Upcoming Payments",
 			Payments:    payments,
 			FetchURL:    fetchURL,
@@ -65,8 +66,6 @@ func Payments(store fin.Store) http.HandlerFunc {
 			Search:      recurringPaymentID == "",
 			Description: recurringPaymentID == "",
 			OOB:         r.URL.Query().Get("oob") == "true",
-		}).Render(w); err != nil {
-			http.Error(w, err.Error(), http.StatusInternalServerError)
-		}
+		}))
 	}
 }

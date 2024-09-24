@@ -7,6 +7,7 @@ import (
 
 	"github.com/deitrix/fin"
 	"github.com/deitrix/fin/pkg/form"
+	"github.com/deitrix/fin/ui"
 	"github.com/deitrix/fin/ui/api"
 	"github.com/deitrix/fin/ui/components"
 	"github.com/go-chi/chi/v5"
@@ -73,7 +74,7 @@ func ScheduleForm(store fin.Store) http.HandlerFunc {
 				schedule.AccountID = accounts[0]
 			}
 		}
-		renderGomp(w, r, components.Layout("New schedule",
+		ui.Render(w, r, components.Layout("New schedule",
 			components.ScheduleForm(accounts, rp, schedule, index),
 		))
 	}

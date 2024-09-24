@@ -4,13 +4,14 @@ import (
 	"net/http"
 
 	"github.com/deitrix/fin"
+	"github.com/deitrix/fin/ui"
 	"github.com/deitrix/fin/ui/components"
 	"github.com/google/uuid"
 )
 
 func RecurringPaymentCreate() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		renderGomp(w, r, components.Layout("Create Recurring Payment",
+		ui.Render(w, r, components.Layout("Create Recurring Payment",
 			components.RecurringPaymentCreate(),
 		))
 	}

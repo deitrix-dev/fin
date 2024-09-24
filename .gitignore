@@ -2,7 +2,6 @@ bin
 node_modules
 *fin.json
 web/assets/style.css
-*_templ.go
 config.json
 .db_password
 .db_root_password

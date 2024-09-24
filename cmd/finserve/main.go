@@ -11,17 +11,14 @@ import (
 	"os"
 	"time"
 
-	"github.com/a-h/templ"
 	"github.com/deitrix/fin/auth"
 	"github.com/deitrix/fin/ui/api"
 	"github.com/deitrix/fin/ui/handlers"
 	"github.com/deitrix/fin/web/assets"
-	"github.com/deitrix/fin/web/page"
 	"github.com/deitrix/sqlg"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-sql-driver/mysql"
-	"github.com/rickb777/date"
 	"golang.org/x/crypto/ssh/terminal"
 
 	finmysql "github.com/deitrix/fin/store/mysql"
@@ -121,52 +118,20 @@ func main() {
 		http.ServeFileFS(w, r, assets.FS, "style.css")
 	})
 
-	router.Get("/", handlers.Home(store))
+	router.Get("/", handlers.Home)
 	router.Get("/recurring-payments/{id}", handlers.RecurringPayment(store))
 	router.Get("/recurring-payments/{id}/form", handlers.RecurringPaymentUpdateForm(store))
 	router.Post("/recurring-payments/{id}/form", handlers.RecurringPaymentHandleUpdateForm(store))
 	router.Get("/recurring-payments/{id}/delete", handlers.RecurringPaymentDelete(store))
 	router.Get("/create", handlers.RecurringPaymentCreate())
 	router.Post("/create", handlers.RecurringPaymentCreateForm(store))
-	router.Get("/form/schedule/{recurringPaymentID}", func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		var values page.ScheduleFormValues
-		if s := r.Form.Get("startDate"); s != "" {
-			startDate, err := date.ParseISO(s)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			values.StartDate = startDate
-		}
-		values.Every = r.Form.Get("every")
-		values.Day = r.Form.Get("day")
-		render(w, r, page.ScheduleForm(chi.URLParam(r, "recurringPaymentID"), values))
-	})
-	router.Get("/schedule/{recurringPaymentID}", func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseForm(); err != nil {
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-		var values page.ScheduleFormValues
-		if s := r.Form.Get("startDate"); s != "" {
-			startDate, err := date.ParseISO(s)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
-			values.StartDate = startDate
-		}
-		render(w, r, page.CreateSchedule(chi.URLParam(r, "recurringPaymentID"), values))
-	})
 	router.Get("/recurring-payments/{id}/schedules/{index}/delete", handlers.ScheduleDelete(store))
 	router.Get("/recurring-payments/{id}/schedules/new", handlers.ScheduleForm(store))
 	router.Post("/recurring-payments/{id}/schedules/new", handlers.ScheduleHandleForm(store))
 	router.Get("/recurring-payments/{id}/schedules/{index}", handlers.ScheduleForm(store))
 	router.Post("/recurring-payments/{id}/schedules/{index}", handlers.ScheduleHandleForm(store))
+
+	router.Get("/api/recurring-payments", api.RecurringPayments(store))
 	router.Get("/api/payments", api.Payments(store))
 	router.Get("/api/payments-for-schedule", api.PaymentsForSchedule)
 	router.Get("/api/header-user", api.HeaderUser(conf.SimulateUser))
@@ -179,10 +144,4 @@ func main() {
 	}
 
 	log.Fatal(server.ListenAndServe())
-}
-
-func render(w http.ResponseWriter, r *http.Request, component templ.Component) {
-	if err := component.Render(r.Context(), w); err != nil {
-		slog.ErrorContext(r.Context(), "error rendering page", err)
-	}
 }

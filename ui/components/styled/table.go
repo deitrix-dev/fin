@@ -14,7 +14,7 @@ func Tr(children ...g.Node) g.Node {
 }
 
 func Th(children ...g.Node) g.Node {
-	return html.Th(html.Class("p-4 bg-gray-700 text-white text-center"), g.Group(children))
+	return html.Th(html.Class("sticky top-0 p-4 bg-gray-700 text-white text-center"), g.Group(children))
 }
 
 func Td(children ...g.Node) g.Node {
