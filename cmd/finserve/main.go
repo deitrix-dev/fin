@@ -171,7 +171,14 @@ func main() {
 	router.Get("/api/payments-for-schedule", api.PaymentsForSchedule)
 	router.Get("/api/header-user", api.HeaderUser(conf.SimulateUser))
 
-	log.Fatal(http.ListenAndServe(":8080", router))
+	server := &http.Server{
+		Addr:         ":8080",
+		Handler:      router,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+	}
+
+	log.Fatal(server.ListenAndServe())
 }
 
 func render(w http.ResponseWriter, r *http.Request, component templ.Component) {
