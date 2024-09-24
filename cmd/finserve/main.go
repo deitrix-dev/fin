@@ -9,6 +9,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/a-h/templ"
 	"github.com/deitrix/fin/auth"
@@ -18,10 +19,13 @@ import (
 	"github.com/deitrix/fin/web/page"
 	"github.com/deitrix/sqlg"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-sql-driver/mysql"
 	"github.com/rickb777/date"
+	"golang.org/x/crypto/ssh/terminal"
 
 	finmysql "github.com/deitrix/fin/store/mysql"
+	slogchi "github.com/samber/slog-chi"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -66,8 +70,26 @@ func readConfig(path string) (config, error) {
 	return c, nil
 }
 
+var defaultHeaders = []string{
+	"CF-Connecting-IP",
+	"X-Real-IP",
+	"X-Forwarded-For",
+}
+
 func main() {
-	slog.SetLogLoggerLevel(slog.LevelDebug)
+	logOpt := &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}
+
+	var logHandler slog.Handler
+	if terminal.IsTerminal(int(os.Stdout.Fd())) {
+		logHandler = slog.NewTextHandler(os.Stdout, logOpt)
+	} else {
+		logHandler = slog.NewJSONHandler(os.Stdout, logOpt)
+	}
+
+	logger := slog.New(logHandler)
+	slog.SetDefault(logger)
 
 	configPath := flag.String("config", "config.json", "path to config file")
 	flag.Parse()
@@ -89,6 +111,10 @@ func main() {
 
 	router := chi.NewRouter()
 
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.Timeout(30 * time.Second))
+	router.Use(middleware.RealIPFromHeaders(defaultHeaders...))
+	router.Use(slogchi.New(logger))
 	router.Use(auth.Verify(conf.Auth))
 
 	router.Get("/assets/style.css", func(w http.ResponseWriter, r *http.Request) {

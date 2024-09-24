@@ -5,16 +5,17 @@ go 1.23.0
 require (
 	github.com/a-h/templ v0.2.778
 	github.com/coreos/go-oidc/v3 v3.11.0
-	github.com/davecgh/go-spew v1.1.1
 	github.com/deitrix/sqlg v0.2.0
 	github.com/doug-martin/goqu/v9 v9.19.0
-	github.com/go-chi/chi/v5 v5.1.0
+	github.com/go-chi/chi/v5 v5.1.1-0.20240918200637-882c15e6462c
 	github.com/go-ozzo/ozzo-validation/v4 v4.3.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/google/uuid v1.6.0
 	github.com/maragudk/gomponents v0.20.5
 	github.com/maragudk/gomponents-htmx v0.5.0
 	github.com/rickb777/date v1.21.1
+	github.com/samber/slog-chi v1.11.2
+	golang.org/x/crypto v0.27.0
 )
 
 require (
@@ -38,13 +39,15 @@ require (
 	go.lsp.dev/jsonrpc2 v0.10.0 // indirect
 	go.lsp.dev/pkg v0.0.0-20210717090340-384b27a52fb2 // indirect
 	go.lsp.dev/uri v0.3.0 // indirect
+	go.opentelemetry.io/otel v1.19.0 // indirect
+	go.opentelemetry.io/otel/trace v1.19.0 // indirect
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
-	golang.org/x/crypto v0.27.0 // indirect
 	golang.org/x/mod v0.20.0 // indirect
 	golang.org/x/net v0.28.0 // indirect
 	golang.org/x/oauth2 v0.23.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
+	golang.org/x/term v0.24.0 // indirect
 	golang.org/x/tools v0.24.0 // indirect
 )
