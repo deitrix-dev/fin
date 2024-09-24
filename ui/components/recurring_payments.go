@@ -12,7 +12,7 @@ func RecurringPayments(recurringPayments []fin.RecurringPayment, search string) 
 	return Article(Class("flex flex-col flex-1 m-0 bg-white p-4 border-2 border-solid border-gray-300"),
 		Div(Class("flex justify-between items-center mb-4 gap-4"),
 			H2(Class("m-0"), Text("Recurring Payments")),
-			Div(Class("flex gap-2 flex-grow"),
+			Div(Class("flex gap-2 flex-grow justify-end"),
 				Input(
 					Class("px-2 flex-grow max-w-[400px]"),
 					Type("search"),
