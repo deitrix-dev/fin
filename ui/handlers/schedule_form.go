@@ -67,8 +67,10 @@ func ScheduleForm(store fin.Store) http.HandlerFunc {
 					Weekday:    fin.Monday,
 					Multiplier: 1,
 				},
-				Amount:    100,
-				AccountID: accounts[0],
+				Amount: 100,
+			}
+			if len(accounts) > 0 {
+				schedule.AccountID = accounts[0]
 			}
 		}
 		renderGomp(w, r, components.Layout("New schedule",

@@ -13,6 +13,7 @@ import (
 
 type ScheduleFormInput struct {
 	Account        string
+	NewAccount     string
 	Amount         float64
 	StartDate      time.Time
 	EndDate        time.Time
@@ -33,8 +34,7 @@ func (in ScheduleFormInput) Schedule() fin.PaymentSchedule {
 			Multiplier: in.Multiplier,
 			Offset:     in.ScheduleOffset,
 		},
-		Amount:    int(in.Amount * 100),
-		AccountID: in.Account,
+		Amount: int(in.Amount * 100),
 	}
 
 	switch in.Repeat {
@@ -51,12 +51,19 @@ func (in ScheduleFormInput) Schedule() fin.PaymentSchedule {
 		schedule.EndDate = &in.EndDate
 	}
 
+	if in.Account != "" {
+		schedule.AccountID = in.Account
+	} else {
+		schedule.AccountID = in.NewAccount
+	}
+
 	return schedule
 }
 
 func ScheduleForm(in *ScheduleFormInput) form.Fields {
 	return form.Fields{
 		"account":        form.String(&in.Account),
+		"newAccount":     form.String(&in.NewAccount),
 		"amount":         form.Float(&in.Amount),
 		"startDate":      form.Time(&in.StartDate, "2006-01-02"),
 		"endDate":        form.Time(&in.EndDate, "2006-01-02"),

@@ -19,7 +19,7 @@ func Layout(title string, components ...Node) Node {
 		Body: []Node{Class("m-0 p-0 bg-gray-100"),
 			Div(Class("flex flex-col h-[100vh] p-4 gap-2 m-auto"),
 				Div(Class("flex justify-between items-center px-2"),
-					s.Link(Href("/"), H1(Class("m-0"), Text("Fin"))),
+					s.Link(s.Primary.Text(), Href("/"), H1(Class("m-0"), Text("Fin"))),
 					Div(hx.Get("/api/header-user"), hx.Trigger("load"), hx.Swap("outerHTML")),
 				),
 				Group(components),

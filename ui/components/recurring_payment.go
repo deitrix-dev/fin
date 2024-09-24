@@ -13,22 +13,15 @@ import (
 	. "github.com/maragudk/gomponents/html"
 )
 
-type MyInts []int
-
-func Test(mi MyInts) []int {
-	return mi
-}
-
 func RecurringPayment(rp fin.RecurringPayment) Node {
 	return Div(Class("grid grid-cols-2 flex-1 overflow-auto gap-2"),
 		Article(Class("flex flex-col flex-1 m-0 bg-white p-4 border-2 border-solid border-gray-300"),
 			Div(Class("flex justify-between items-center"),
 				H2(Class("m-0"), Text(rp.Name)),
-				Div(Class("flex gap-2 items-center"),
-					A(Class("no-underline bg-green-600 text-white px-4 py-2 hover:bg-green-500"),
-						Href("/recurring-payments/"+rp.ID+"/schedules/new"), Text("New schedule")),
-					A(Class("no-underline bg-red-600 text-white px-4 py-2 hover:bg-red-500"),
-						Href("/recurring-payments/"+rp.ID+"/delete"), Text("Delete")),
+				Div(Class("flex gap-4 items-center"),
+					s.Link(s.Primary.Text(), Href("/recurring-payments/"+rp.ID+"/schedules/new"), Text("New schedule")),
+					s.Link(s.Danger.Bordered(), Href("/recurring-payments/"+rp.ID+"/delete"), Text("Delete"),
+						Confirm("Are you sure you want to delete this recurring payment")),
 				),
 			),
 			Sub(Class("text-gray-500 mt-4"), Text("Recurring Payment")),
@@ -66,13 +59,10 @@ func RecurringPayment(rp fin.RecurringPayment) Node {
 						s.Td(Text(ps.AmountGBP())),
 						s.Td(Text(ps.AccountID)),
 						s.Td(
-							Div(Class("flex justify-center gap-1"),
-								A(Class("no-underline bg-blue-600 text-white text-sm py-0.5 px-2 hover:bg-blue-500"),
-									Href("/recurring-payments/"+rp.ID+"/schedules/"+strconv.Itoa(i)),
-									Text("Edit")),
-								A(Class("no-underline bg-red-600 text-white text-sm py-0.5 px-2 hover:bg-red-500"),
-									Href("/recurring-payments/"+rp.ID+"/schedules/"+strconv.Itoa(i)+"/delete"),
-									Text("Delete")),
+							Div(Class("flex justify-center items-center gap-4"),
+								s.Link(s.Primary.Text().Sm(), Href("/recurring-payments/"+rp.ID+"/schedules/"+strconv.Itoa(i)), Text("Edit")),
+								s.Link(s.Danger.Text().Sm(), Href("/recurring-payments/"+rp.ID+"/schedules/"+strconv.Itoa(i)+"/delete"), Text("Delete"),
+									Confirm("Are you sure you want to delete this payment schedule")),
 							),
 						),
 					)

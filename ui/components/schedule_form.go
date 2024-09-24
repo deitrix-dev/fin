@@ -2,6 +2,7 @@ package components
 
 import (
 	"fmt"
+	"slices"
 
 	"github.com/deitrix/fin"
 	. "github.com/maragudk/gomponents"
@@ -31,6 +32,7 @@ func ScheduleForm(
 	schedule fin.PaymentSchedule,
 	index int,
 ) Node {
+	isNewAccount := !slices.Contains(accounts, schedule.AccountID)
 	var postURL string
 	if index > -1 {
 		postURL = fmt.Sprintf("/recurring-payments/%s/schedules/%d", rp.ID, index)
@@ -49,12 +51,19 @@ func ScheduleForm(
 					hx.Target("#paymentsForSchedule"),
 					Div(Class("flex flex-col gap-4"),
 						Label(Text("Account"),
-							Select(Class("block w-full text-lg px-2 py-3.5 mt-1"), ID("account"), Name("account"), Required(),
-								Group(Map(accounts, func(account string) Node {
+							Select(Class("block w-full text-lg px-2 py-3.5 mt-1"), ID("account"), Name("account"),
+								Map(accounts, func(account string) Node {
 									return Option(Value(account), Text(account), If(account == schedule.AccountID, Selected()))
-								})),
+								}),
+								Option(Value(""), Text("New account"), If(isNewAccount, Selected())),
+								hx.Get(refreshFormURL), hx.Trigger("change"), hx.Include("#scheduleForm"),
+								hx.Select("#scheduleForm"), hx.Target("#scheduleForm"), hx.Swap("outerHTML"),
 							),
 						),
+						If(isNewAccount,
+							Label(Text("New account"),
+								Input(Type("text"), Class("block w-full text-lg p-2 mt-1"), AutoComplete("off"), ID("newAccount"), Name("newAccount"),
+									Value(schedule.AccountID)))),
 						Label(Text("Amount"),
 							Input(Type("number"), Step("0.01"), Class("block w-full text-lg p-2 mt-1"), AutoComplete("off"), ID("amount"), Name("amount"), Required(),
 								Value(fmt.Sprint(float64(schedule.Amount)/100)))),
@@ -66,9 +75,9 @@ func ScheduleForm(
 								Iff(schedule.EndDate != nil, func() Node { return Value(schedule.EndDate.Format("2006-01-02")) }))),
 						Label(Text("Repeat"),
 							Select(Class("block w-full text-lg px-2 py-3.5 mt-1"), ID("repeat"), Name("repeat"), Required(),
-								Group(Map(repeatOptions, func(value [2]string) Node {
+								Map(repeatOptions, func(value [2]string) Node {
 									return Option(Value(value[0]), Text(value[1]), If(value[0] == string(schedule.Repeat.Every), Selected()))
-								})),
+								}),
 								hx.Get(refreshFormURL), hx.Trigger("change"), hx.Include("#scheduleForm"),
 								hx.Select("#scheduleForm"), hx.Target("#scheduleForm"), hx.Swap("outerHTML"),
 							)),
@@ -79,9 +88,9 @@ func ScheduleForm(
 						If(schedule.Repeat.Every == fin.Week,
 							Label(Text("Day of week"),
 								Select(Class("block w-full text-lg px-2 py-3.5 mt-1"), ID("dayOfWeek"), Name("dayOfWeek"),
-									Group(Map(weekdayOptions, func(value [2]string) Node {
+									Map(weekdayOptions, func(value [2]string) Node {
 										return Option(Value(value[0]), Text(value[1]), If(value[0] == string(schedule.Repeat.Weekday), Selected()))
-									}))))),
+									})))),
 						Label(Text("Multiplier"),
 							Input(Type("number"), Class("block w-full text-lg p-2 mt-1"), AutoComplete("off"), ID("multiplier"), Name("multiplier"),
 								Value(fmt.Sprint(schedule.Repeat.Multiplier)),

@@ -9,3 +9,7 @@ func MapIndex[T any](items []T, f func(int, T) Node) []Node {
 	}
 	return nodes
 }
+
+func Confirm(confirmation string) Node {
+	return Attr("onclick", "return window.confirm('"+confirmation+"')")
+}

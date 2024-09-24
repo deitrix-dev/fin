@@ -124,7 +124,14 @@ func DecodeString[T ~string](values []string) (T, bool, error) {
 	if len(values) == 0 {
 		return "", false, nil
 	}
-	return T(values[0]), true, nil
+	for _, strval := range values {
+		strval = strings.TrimSpace(strval)
+		if strval == "" {
+			return "", true, nil
+		}
+		return T(strval), true, nil
+	}
+	return "", false, nil
 }
 
 func EncodeString[T ~string](value T) []string {
@@ -148,15 +155,18 @@ func DecodeInt[T intConstraint](values []string) (T, bool, error) {
 	if len(values) == 0 {
 		return 0, false, nil
 	}
-	values[0] = strings.TrimSpace(values[0])
-	if values[0] == "" {
-		return 0, false, nil
+	for _, strval := range values {
+		strval = strings.TrimSpace(strval)
+		if strval == "" {
+			return 0, true, nil
+		}
+		value, err := strconv.ParseInt(strval, 10, 64)
+		if err != nil {
+			return 0, false, err
+		}
+		return T(value), true, nil
 	}
-	value, err := strconv.ParseInt(values[0], 10, 64)
-	if err != nil {
-		return 0, false, err
-	}
-	return T(value), true, nil
+	return 0, false, nil
 }
 
 func EncodeInt[T intConstraint](value T) []string {
@@ -180,15 +190,18 @@ func DecodeUint[T uintConstraint](values []string) (T, bool, error) {
 	if len(values) == 0 {
 		return 0, false, nil
 	}
-	values[0] = strings.TrimSpace(values[0])
-	if values[0] == "" {
-		return 0, false, nil
+	for _, strval := range values {
+		strval = strings.TrimSpace(strval)
+		if strval == "" {
+			return 0, true, nil
+		}
+		value, err := strconv.ParseUint(strval, 10, 64)
+		if err != nil {
+			return 0, false, err
+		}
+		return T(value), true, nil
 	}
-	value, err := strconv.ParseUint(values[0], 10, 64)
-	if err != nil {
-		return 0, false, err
-	}
-	return T(value), true, nil
+	return 0, false, nil
 }
 
 func EncodeUint[T uintConstraint](value T) []string {
@@ -212,15 +225,18 @@ func DecodeFloat[T floatConstraint](values []string) (T, bool, error) {
 	if len(values) == 0 {
 		return 0, false, nil
 	}
-	values[0] = strings.TrimSpace(values[0])
-	if values[0] == "" {
-		return 0, false, nil
+	for _, strval := range values {
+		strval = strings.TrimSpace(strval)
+		if strval == "" {
+			return 0, true, nil
+		}
+		value, err := strconv.ParseFloat(strval, 64)
+		if err != nil {
+			return 0, false, err
+		}
+		return T(value), true, nil
 	}
-	value, err := strconv.ParseFloat(values[0], 64)
-	if err != nil {
-		return 0, false, err
-	}
-	return T(value), true, nil
+	return 0, false, nil
 }
 
 func EncodeFloat[T floatConstraint](value T) []string {
@@ -241,15 +257,18 @@ func DecodeTime(layout string) func([]string) (time.Time, bool, error) {
 		if len(values) == 0 {
 			return time.Time{}, false, nil
 		}
-		values[0] = strings.TrimSpace(values[0])
-		if values[0] == "" {
-			return time.Time{}, false, nil
+		for _, strval := range values {
+			strval = strings.TrimSpace(strval)
+			if strval == "" {
+				return time.Time{}, true, nil
+			}
+			value, err := time.Parse(layout, strval)
+			if err != nil {
+				return time.Time{}, false, err
+			}
+			return value, true, nil
 		}
-		value, err := time.Parse(layout, values[0])
-		if err != nil {
-			return time.Time{}, false, err
-		}
-		return value, true, nil
+		return time.Time{}, false, nil
 	}
 }
 
@@ -272,11 +291,16 @@ func DecodeBool[T ~bool](values []string) (T, bool, error) {
 	if len(values) == 0 {
 		return false, false, nil
 	}
-	switch strings.ToLower(values[0]) {
-	case "true", "1":
-		return true, true, nil
-	case "false", "0":
-		return false, true, nil
+	for _, strval := range values {
+		strval = strings.TrimSpace(strval)
+		if strval == "" {
+			return false, true, nil
+		}
+		value, err := strconv.ParseBool(strval)
+		if err != nil {
+			return false, false, err
+		}
+		return T(value), true, nil
 	}
 	return false, false, nil
 }
