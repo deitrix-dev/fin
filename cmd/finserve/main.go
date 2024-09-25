@@ -147,6 +147,7 @@ func main() {
 		r.Get("/api/payments-for-schedule", api.PaymentsForSchedule)
 		r.Get("/api/header-user", api.HeaderUser(conf.SimulateUser))
 	})
+
 	server := &http.Server{
 		Addr:         ":8080",
 		Handler:      router,

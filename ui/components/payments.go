@@ -64,7 +64,7 @@ func Payments(in PaymentsInputs) Node {
 					If(in.Description, s.Th(Text("Description"))),
 					s.Th(Text("Account")),
 					s.Th(Text("Amount")),
-					s.Th(Text("Actions")),
+					If(in.Description, s.Th(Text("Actions"))),
 				),
 				TBody(
 					ID("paymentsContainer"),
@@ -74,7 +74,7 @@ func Payments(in PaymentsInputs) Node {
 							If(in.Description, s.Td(Text(payment.Description))),
 							s.Td(Text(payment.AccountID)),
 							s.Td(Textf("£%.2f", float64(payment.Amount)/100)),
-							s.Td(Div(Class("flex gap-3 justify-center"),
+							If(in.Description, s.Td(Div(Class("flex gap-3 justify-center"),
 								Iff(payment.ID != nil, func() Node {
 									return Group{
 										s.Link(s.Primary.Text(), Href("/payments/"+*payment.ID), Text("edit")),
@@ -82,7 +82,7 @@ func Payments(in PaymentsInputs) Node {
 											Confirm("Are you sure you want to delete this payment")),
 									}
 								}),
-							)),
+							))),
 						)
 					}),
 				),
