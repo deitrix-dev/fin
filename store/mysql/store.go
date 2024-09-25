@@ -115,11 +115,10 @@ func recurringPaymentFilter(filter fin.RecurringPaymentFilter) []exp.Expression 
 	return exprs
 }
 
-func (s *Store) RecurringPayments(ctx context.Context, query fin.RecurringPaymentsQuery) (fin.Page[fin.RecurringPayment], error) {
-	return pageOf(ctx, s.db, scanRecurringPayment, selectRecurringPayments.
-		Where(recurringPaymentFilter(query.Filter)...).
-		Offset(query.Offset).
-		Limit(query.Limit))
+func (s *Store) RecurringPayments(ctx context.Context, filter fin.RecurringPaymentFilter) ([]fin.RecurringPayment, error) {
+	return sqlg.SelectAll(ctx, s.db, scanRecurringPayment, selectRecurringPayments.
+		Where(recurringPaymentFilter(filter)...).
+		Order(goqu.C("name").Asc()))
 }
 
 func recurringPaymentRow(rp fin.RecurringPayment) goqu.Record {
@@ -154,12 +153,13 @@ func (s *Store) DeleteRecurringPayment(ctx context.Context, id string) error {
 var paymentsTable = goqu.T("payments")
 
 var selectPayments = mySQL.
-	Select("id", "date", "amount", "account_id", "recurring_payment_id").
+	Select("id", "description", "date", "amount", "account_id", "recurring_payment_id").
 	From(paymentsTable)
 
 func scanPayment(row sqlg.Row) (p fin.Payment, err error) {
 	return p, row.Scan(
 		&p.ID,
+		&p.Description,
 		&p.Date,
 		&p.Amount,
 		&p.AccountID,
@@ -181,6 +181,9 @@ func paymentFilter(filter fin.PaymentFilter) []exp.Expression {
 	if filter.Before != nil {
 		exprs = append(exprs, goqu.C("date").Lt(*filter.Before))
 	}
+	if filter.Search != "" {
+		exprs = append(exprs, goqu.C("description").ILike("%"+filter.Search+"%"))
+	}
 	if len(filter.AccountIDs) > 0 {
 		exprs = append(exprs, goqu.C("account_id").In(filter.AccountIDs))
 	}
@@ -190,6 +193,10 @@ func paymentFilter(filter fin.PaymentFilter) []exp.Expression {
 func (s *Store) Payments(ctx context.Context, q fin.PaymentsQuery) (fin.Page[fin.Payment], error) {
 	return pageOf(ctx, s.db, scanPayment, selectPayments.
 		Where(paymentFilter(q.Filter)...).
+		Order(
+			goqu.C("date").Asc(),
+			goqu.C("description").Asc(),
+		).
 		Offset(q.Offset).
 		Limit(q.Limit))
 }
@@ -197,6 +204,7 @@ func (s *Store) Payments(ctx context.Context, q fin.PaymentsQuery) (fin.Page[fin
 func paymentRow(p fin.Payment) goqu.Record {
 	return goqu.Record{
 		"id":                   p.ID,
+		"description":          p.Description,
 		"date":                 p.Date,
 		"amount":               p.Amount,
 		"account_id":           p.AccountID,

@@ -4,12 +4,11 @@ import (
 	"cmp"
 	"fmt"
 	"time"
-
-	"github.com/deitrix/fin/pkg/pointer"
 )
 
 type Payment struct {
 	ID                 *string           `json:"id,omitempty"`
+	Description        string            `json:"description"`
 	Date               time.Time         `json:"date"`
 	Amount             int               `json:"amount"`
 	AccountID          string            `json:"accountId"`
@@ -21,7 +20,7 @@ type Payment struct {
 func (a Payment) Compare(b Payment) int {
 	return cmp.Or(
 		a.Date.Compare(b.Date),
-		cmp.Compare(pointer.Zero(a.RecurringPayment).Name, pointer.Zero(b.RecurringPayment).Name),
+		cmp.Compare(a.Description, b.Description),
 	)
 }
 

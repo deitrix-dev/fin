@@ -23,7 +23,7 @@ type Store interface {
 	DeletePayment(ctx context.Context, id string) error
 
 	RecurringPayment(ctx context.Context, id string) (RecurringPayment, error)
-	RecurringPayments(ctx context.Context, q RecurringPaymentsQuery) (Page[RecurringPayment], error)
+	RecurringPayments(ctx context.Context, filter RecurringPaymentFilter) ([]RecurringPayment, error)
 	CreateRecurringPayment(ctx context.Context, rp RecurringPayment) error
 	UpdateRecurringPayment(ctx context.Context, rp RecurringPayment) error
 	DeleteRecurringPayment(ctx context.Context, id string) error
@@ -59,27 +59,6 @@ func (f AccountFilter) Validate() error {
 	)
 }
 
-// RecurringPaymentsQuery holds options and filters for querying recurring payments.
-type RecurringPaymentsQuery struct {
-	Filter RecurringPaymentFilter `json:"filter"`
-	Offset uint                   `json:"offset"`
-	Limit  uint                   `json:"limit"`
-}
-
-func (q RecurringPaymentsQuery) Validate() error {
-	return v.ValidateStruct(&q,
-		v.Field(&q.Filter),
-		v.Field(&q.Offset, v.Min(0)),
-		v.Field(&q.Limit, v.Required, v.Min(1), v.Max(100)),
-	)
-}
-
-func (q RecurringPaymentsQuery) WithPage(offset, limit uint) RecurringPaymentsQuery {
-	q.Offset = offset
-	q.Limit = limit
-	return q
-}
-
 type RecurringPaymentFilter struct {
 	Search string `json:"search"`
 }
@@ -92,9 +71,11 @@ func (f RecurringPaymentFilter) Validate() error {
 
 // PaymentsQuery holds options and filters for querying payments.
 type PaymentsQuery struct {
-	Filter PaymentFilter `json:"filter"`
-	Offset uint          `json:"offset"`
-	Limit  uint          `json:"limit"`
+	Filter                PaymentFilter `json:"filter"`
+	RecurringPaymentsOnly bool
+	PaymentsOnly          bool
+	Offset                uint `json:"offset"`
+	Limit                 uint `json:"limit"`
 }
 
 func (q PaymentsQuery) WithPage(offset, limit uint) PaymentsQuery {
@@ -114,6 +95,7 @@ func (q PaymentsQuery) Validate() error {
 type PaymentFilter struct {
 	After      *time.Time `json:"after"`
 	Before     *time.Time `json:"before"`
+	Search     string     `json:"search"`
 	AccountIDs []string   `json:"accountIds"`
 }
 
@@ -134,16 +116,19 @@ type Page[T any] struct {
 }
 
 // PageIter can be used to iterate over all pages of a paginated query.
-func PageIter[T any, Q interface {
-	WithPage(offset, limit uint) Q
-}](query Q, pageSize uint, queryFn func(context.Context, Q) (Page[T], error)) iter.Seq2[T, error] {
+func PageIter[T any, Q interface{ WithPage(offset, limit uint) Q }](
+	ctx context.Context,
+	query Q,
+	pageSize uint,
+	queryFn func(context.Context, Q) (Page[T], error),
+) iter.Seq2[T, error] {
 	var total uint
 	return func(yield func(T, error) bool) {
 		for offset := uint(0); ; offset += pageSize {
 			if total > 0 && offset >= total {
 				return
 			}
-			page, err := queryFn(context.Background(), query.WithPage(offset, pageSize))
+			page, err := queryFn(ctx, query.WithPage(offset, pageSize))
 			if err != nil {
 				if !yield(*new(T), err) {
 					return

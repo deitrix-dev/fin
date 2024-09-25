@@ -32,6 +32,10 @@ func ScheduleForm(
 	schedule fin.PaymentSchedule,
 	index int,
 ) Node {
+	createUpdate := "Create"
+	if index > -1 {
+		createUpdate = "Update"
+	}
 	isNewAccount := !slices.Contains(accounts, schedule.AccountID)
 	var postURL string
 	if index > -1 {
@@ -44,7 +48,7 @@ func ScheduleForm(
 		Div(Class("flex overflow-auto items-start"),
 			Article(Class("flex flex-col flex-1 m-0 bg-white p-8 border-2 border-solid border-gray-300"),
 				Div(Class("mb-8"),
-					H1(Class("text-center m-0"), Text("Create schedule")),
+					H1(Class("text-center m-0"), Text(createUpdate+" Schedule")),
 				),
 				Form(ID("scheduleForm"), Action(postURL), Method("post"),
 					hx.Get("/api/payments-for-schedule"), hx.Trigger("load, change"),
@@ -103,7 +107,7 @@ func ScheduleForm(
 									Value(fmt.Sprint(schedule.Repeat.Offset))))),
 
 						Button(Class("border-none bg-blue-600 text-white text-lg py-2 hover:bg-blue-500 cursor-pointer"),
-							Type("submit"), If(index == -1, Text("Create")), If(index != -1, Text("Update"))),
+							Type("submit"), Text(createUpdate)),
 					),
 				),
 			),

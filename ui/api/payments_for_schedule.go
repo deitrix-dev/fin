@@ -23,7 +23,7 @@ type ScheduleFormInput struct {
 	DayOfWeek      string
 	ScheduleOffset int
 	Multiplier     int
-	Offset         int
+	Offset         uint
 	OOB            bool
 	FormPriority   bool
 }
@@ -73,7 +73,7 @@ func ScheduleForm(in *ScheduleFormInput) form.Fields {
 		"dayOfWeek":      form.String(&in.DayOfWeek),
 		"scheduleOffset": form.Int(&in.ScheduleOffset),
 		"multiplier":     form.Int(&in.Multiplier),
-		"offset":         form.Int(&in.Offset),
+		"offset":         form.Uint(&in.Offset),
 		"oob":            form.Bool(&in.OOB),
 		"formPriority":   form.Bool(&in.FormPriority),
 	}
@@ -93,8 +93,8 @@ func PaymentsForSchedule(w http.ResponseWriter, r *http.Request) {
 	}
 
 	schedule := input.Schedule()
-	payments := iterx.CollectN(iterx.Skip(schedule.PaymentsSince(from), input.Offset), 26)
-	var nextPage *int
+	payments := iterx.Paginate(schedule.PaymentsSince(from), input.Offset, 26)
+	var nextPage *uint
 	if len(payments) == 26 {
 		nextPage = pointer.To(input.Offset + 25)
 		payments = payments[:25]

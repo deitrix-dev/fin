@@ -59,9 +59,9 @@ func RecurringPayment(rp fin.RecurringPayment) Node {
 						s.Td(Text(ps.AmountGBP())),
 						s.Td(Text(ps.AccountID)),
 						s.Td(
-							Div(Class("flex justify-center items-center gap-4"),
-								s.Link(s.Primary.Text().Sm(), Href("/recurring-payments/"+rp.ID+"/schedules/"+strconv.Itoa(i)), Text("Edit")),
-								s.Link(s.Danger.Text().Sm(), Href("/recurring-payments/"+rp.ID+"/schedules/"+strconv.Itoa(i)+"/delete"), Text("Delete"),
+							Div(Class("flex justify-center items-center gap-3"),
+								s.Link(s.Primary.Text(), Href("/recurring-payments/"+rp.ID+"/schedules/"+strconv.Itoa(i)), Text("edit")),
+								s.Link(s.Danger.Text(), Href("/recurring-payments/"+rp.ID+"/schedules/"+strconv.Itoa(i)+"/delete"), Text("delete"),
 									Confirm("Are you sure you want to delete this payment schedule")),
 							),
 						),

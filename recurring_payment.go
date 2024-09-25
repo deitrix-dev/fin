@@ -70,7 +70,7 @@ func (rp RecurringPayment) PaymentsSince(since time.Time) iter.Seq[Payment] {
 	for i, s := range rp.Schedules {
 		seqs[i] = withRecurringPaymentSeq(&rp, s.PaymentsSince(since))
 	}
-	return iterx.JoinFunc(seqs, Payment.Compare)
+	return iterx.Join(Payment.Compare, seqs...)
 }
 
 func (rp RecurringPayment) PaymentsSinceN(since time.Time, n int) []Payment {
@@ -82,6 +82,7 @@ func withRecurringPaymentSeq(rp *RecurringPayment, seq iter.Seq[Payment]) iter.S
 		for p := range seq {
 			p.RecurringPaymentID = &rp.ID
 			p.RecurringPayment = rp
+			p.Description = rp.Name
 			if !yield(p) {
 				return
 			}
@@ -94,7 +95,7 @@ func PaymentsSince(rps []RecurringPayment, since time.Time) iter.Seq[Payment] {
 	for i, rp := range rps {
 		seqs[i] = rp.PaymentsSince(since)
 	}
-	return iterx.JoinFunc(seqs, Payment.Compare)
+	return iterx.Join(Payment.Compare, seqs...)
 }
 
 func PaymentsSinceN(rps []RecurringPayment, since time.Time, n int) []Payment {

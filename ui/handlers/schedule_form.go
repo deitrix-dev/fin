@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"context"
 	"net/http"
 	"sort"
 	"strconv"
@@ -13,24 +14,39 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
+func accountList(ctx context.Context, store fin.Store) ([]string, error) {
+	rps, err := store.RecurringPayments(ctx, fin.RecurringPaymentFilter{})
+	if err != nil {
+		return nil, err
+	}
+	payments := fin.PageIter(ctx, fin.PaymentsQuery{}, 100, store.Payments)
+	accountsSet := make(map[string]struct{})
+	for _, rp := range rps {
+		for _, sch := range rp.Schedules {
+			accountsSet[sch.AccountID] = struct{}{}
+		}
+	}
+	for p, err := range payments {
+		if err != nil {
+			return nil, err
+		}
+		accountsSet[p.AccountID] = struct{}{}
+	}
+	accounts := make([]string, 0, len(accountsSet))
+	for acc := range accountsSet {
+		accounts = append(accounts, acc)
+	}
+	sort.Strings(accounts)
+	return accounts, nil
+}
+
 func ScheduleForm(store fin.Store) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		rps := fin.PageIter(fin.RecurringPaymentsQuery{}, 100, store.RecurringPayments)
-		accountsSet := make(map[string]struct{})
-		for rp, err := range rps {
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			for _, sch := range rp.Schedules {
-				accountsSet[sch.AccountID] = struct{}{}
-			}
+		accounts, err := accountList(r.Context(), store)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
 		}
-		accounts := make([]string, 0, len(accountsSet))
-		for acc := range accountsSet {
-			accounts = append(accounts, acc)
-		}
-		sort.Strings(accounts)
 		rp, err := store.RecurringPayment(r.Context(), chi.URLParam(r, "id"))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)

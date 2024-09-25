@@ -33,6 +33,6 @@ func RecurringPaymentCreateForm(store fin.Store) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		http.Redirect(w, r, "/", http.StatusSeeOther)
+		http.Redirect(w, r, "/recurring-payments/"+rp.ID, http.StatusSeeOther)
 	}
 }

@@ -2,6 +2,7 @@ package components
 
 import (
 	"github.com/deitrix/fin"
+	. "github.com/deitrix/fin/pkg/gomponents/ext"
 	s "github.com/deitrix/fin/ui/components/styled"
 	. "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
@@ -21,7 +22,7 @@ func RecurringPayments(recurringPayments []fin.RecurringPayment, search string) 
 					Placeholder("Search"),
 					Value(search),
 					hx.Get("/api/recurring-payments"),
-					hx.Trigger("input changed delay:500ms, search"),
+					hx.Trigger("input changed"),
 					hx.Target("#recurringPaymentsTable"),
 					hx.Select("#recurringPaymentsTable"),
 					hx.Swap("outerHTML scroll:top"),
@@ -34,6 +35,7 @@ func RecurringPayments(recurringPayments []fin.RecurringPayment, search string) 
 				s.Tr(
 					s.Th(Text("Name")),
 					s.Th(Text("Next Payment")),
+					s.Th(Text("Actions")),
 				),
 				Map(recurringPayments, func(rp fin.RecurringPayment) Node {
 					return s.Tr(
@@ -42,6 +44,8 @@ func RecurringPayments(recurringPayments []fin.RecurringPayment, search string) 
 							np := rp.NextPayment()
 							return Textf("%s on %s", np.AmountGBP(), np.Date.Format("2 Jan"))
 						})),
+						s.Td(s.Link(s.Danger.Text(), Href("/recurring-payments/"+rp.ID+"/delete"), Text("delete"),
+							Confirm("Are you sure you want to delete this recurring payment?"))),
 					)
 				}),
 			),

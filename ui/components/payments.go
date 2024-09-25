@@ -1,11 +1,9 @@
 package components
 
 import (
-	"fmt"
-	"net/url"
-
 	"github.com/deitrix/fin"
-	"github.com/deitrix/fin/pkg/pointer"
+	. "github.com/deitrix/fin/pkg/gomponents/ext"
+	"github.com/deitrix/fin/pkg/murl"
 	s "github.com/deitrix/fin/ui/components/styled"
 	. "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
@@ -16,10 +14,15 @@ type PaymentsInputs struct {
 	Header      string
 	Payments    []fin.Payment
 	FetchURL    string
-	NextPage    *int
+	NextPage    *uint
 	Search      bool
 	Description bool
 	OOB         bool
+	OOBSearch   bool
+	OOBFilter   bool
+	Exclude     []string
+	Filter      string
+	Query       string
 }
 
 func Payments(in PaymentsInputs) Node {
@@ -28,10 +31,28 @@ func Payments(in PaymentsInputs) Node {
 			H2(Class("m-0"), Text(in.Header)),
 			If(in.Search,
 				Div(Class("flex gap-2 flex-grow justify-end"),
-					Input(Class("px-2 flex-grow max-w-[400px]"), Type("search"), AutoComplete("off"), Name("q"), Placeholder("Search"),
-						hx.Get(removeQuery(in.FetchURL, "q")), hx.Trigger("input changed, search"),
+					Select(ID("paymentFilter"), Class("px-2"), Name("paymentFilter"),
+						Option(Value(""), Text("All"), If(in.Filter == "", Selected())),
+						Option(Value("paymentsOnly"), Text("Payments only"), If(in.Filter == "paymentsOnly", Selected())),
+						Option(Value("recurringPaymentsOnly"), Text("Recurring payments only"), If(in.Filter == "recurringPaymentsOnly", Selected())),
+						hx.Get(murl.Mutate(in.FetchURL,
+							murl.RemoveQuery("paymentFilter"),
+							murl.AddQuery("source", "paymentFilter"),
+						)), hx.Trigger("change"),
 						hx.Target("#paymentsContainer"), hx.Select("#paymentsContainer"),
-						hx.Swap("outerHTML scroll:top")),
+						hx.Swap("outerHTML scroll:top"),
+						If(in.OOBFilter, hx.SwapOOB("outerHTML")),
+					),
+					Input(ID("paymentSearch"), Class("px-2 flex-grow max-w-[400px]"), Type("search"), AutoComplete("off"), Name("paymentSearch"), Placeholder("Search"),
+						hx.Get(murl.Mutate(in.FetchURL,
+							murl.RemoveQuery("paymentSearch"),
+							murl.AddQuery("source", "paymentSearch"),
+						)), hx.Trigger("input changed, search"),
+						hx.Target("#paymentsContainer"), hx.Select("#paymentsContainer"),
+						hx.Swap("outerHTML scroll:top"),
+						If(in.OOBSearch, hx.SwapOOB("outerHTML")),
+						Value(in.Query),
+					),
 					s.Link(s.Primary.Sm(), Href("/payments/new"), Text("Create")),
 				),
 			),
@@ -43,15 +64,25 @@ func Payments(in PaymentsInputs) Node {
 					If(in.Description, s.Th(Text("Description"))),
 					s.Th(Text("Account")),
 					s.Th(Text("Amount")),
+					s.Th(Text("Actions")),
 				),
 				TBody(
 					ID("paymentsContainer"),
 					Map(in.Payments, func(payment fin.Payment) Node {
 						return s.Tr(
 							s.Td(Textf("%s", payment.Date.Format("Mon 2 Jan 2006"))),
-							If(in.Description, s.Td(Text(pointer.Zero(payment.RecurringPayment).Name))),
+							If(in.Description, s.Td(Text(payment.Description))),
 							s.Td(Text(payment.AccountID)),
 							s.Td(Textf("£%.2f", float64(payment.Amount)/100)),
+							s.Td(Div(Class("flex gap-3 justify-center"),
+								Iff(payment.ID != nil, func() Node {
+									return Group{
+										s.Link(s.Primary.Text(), Href("/payments/"+*payment.ID), Text("edit")),
+										s.Link(s.Danger.Text(), Href("/payments/"+*payment.ID+"/delete"), Text("delete"),
+											Confirm("Are you sure you want to delete this payment")),
+									}
+								}),
+							)),
 						)
 					}),
 				),
@@ -64,7 +95,10 @@ func Payments(in PaymentsInputs) Node {
 				return s.Link(s.Primary.Bordered(),
 					Href("#"),
 					hx.Swap("beforeend"),
-					hx.Get(addQuery(in.FetchURL, "offset", *in.NextPage)),
+					hx.Get(murl.Mutate(in.FetchURL, murl.AddQuery(
+						"offset", *in.NextPage,
+						"source", "loadMore",
+					))),
 					hx.Select("#paymentsContainer>tr"),
 					hx.Target("#paymentsContainer"),
 					Text("Load more"),
@@ -72,26 +106,4 @@ func Payments(in PaymentsInputs) Node {
 			}),
 		),
 	)
-}
-
-func addQuery(rawURL, key string, value any) string {
-	u, err := url.Parse(rawURL)
-	if err != nil {
-		panic(err)
-	}
-	q := u.Query()
-	q.Set(key, fmt.Sprint(value))
-	u.RawQuery = q.Encode()
-	return u.String()
-}
-
-func removeQuery(rawURL, key string) string {
-	u, err := url.Parse(rawURL)
-	if err != nil {
-		panic(err)
-	}
-	q := u.Query()
-	q.Del(key)
-	u.RawQuery = q.Encode()
-	return u.String()
 }

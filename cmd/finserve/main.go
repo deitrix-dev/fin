@@ -11,6 +11,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/deitrix/fin"
 	"github.com/deitrix/fin/auth"
 	"github.com/deitrix/fin/ui/api"
 	"github.com/deitrix/fin/ui/handlers"
@@ -105,6 +106,7 @@ func main() {
 	}
 
 	store := finmysql.NewStore(db)
+	svc := fin.NewService(store)
 
 	router := chi.NewRouter()
 
@@ -118,24 +120,33 @@ func main() {
 		http.ServeFileFS(w, r, assets.FS, "style.css")
 	})
 
-	router.Get("/", handlers.Home)
-	router.Get("/recurring-payments/{id}", handlers.RecurringPayment(store))
-	router.Get("/recurring-payments/{id}/form", handlers.RecurringPaymentUpdateForm(store))
-	router.Post("/recurring-payments/{id}/form", handlers.RecurringPaymentHandleUpdateForm(store))
-	router.Get("/recurring-payments/{id}/delete", handlers.RecurringPaymentDelete(store))
-	router.Get("/create", handlers.RecurringPaymentCreate())
-	router.Post("/create", handlers.RecurringPaymentCreateForm(store))
-	router.Get("/recurring-payments/{id}/schedules/{index}/delete", handlers.ScheduleDelete(store))
-	router.Get("/recurring-payments/{id}/schedules/new", handlers.ScheduleForm(store))
-	router.Post("/recurring-payments/{id}/schedules/new", handlers.ScheduleHandleForm(store))
-	router.Get("/recurring-payments/{id}/schedules/{index}", handlers.ScheduleForm(store))
-	router.Post("/recurring-payments/{id}/schedules/{index}", handlers.ScheduleHandleForm(store))
+	router.Group(func(r chi.Router) {
+		r.Use(middleware.SetHeader("Cache-Control", "no-store"))
 
-	router.Get("/api/recurring-payments", api.RecurringPayments(store))
-	router.Get("/api/payments", api.Payments(store))
-	router.Get("/api/payments-for-schedule", api.PaymentsForSchedule)
-	router.Get("/api/header-user", api.HeaderUser(conf.SimulateUser))
+		r.Get("/", handlers.Home)
+		r.Get("/recurring-payments/{id}", handlers.RecurringPayment(store))
+		r.Get("/recurring-payments/{id}/form", handlers.RecurringPaymentUpdateForm(store))
+		r.Post("/recurring-payments/{id}/form", handlers.RecurringPaymentHandleUpdateForm(store))
+		r.Get("/recurring-payments/{id}/delete", handlers.RecurringPaymentDelete(store))
+		r.Get("/create", handlers.RecurringPaymentCreate())
+		r.Post("/create", handlers.RecurringPaymentCreateForm(store))
+		r.Get("/recurring-payments/{id}/schedules/{index}/delete", handlers.ScheduleDelete(store))
+		r.Get("/recurring-payments/{id}/schedules/new", handlers.ScheduleForm(store))
+		r.Post("/recurring-payments/{id}/schedules/new", handlers.ScheduleHandleForm(store))
+		r.Get("/recurring-payments/{id}/schedules/{index}", handlers.ScheduleForm(store))
+		r.Post("/recurring-payments/{id}/schedules/{index}", handlers.ScheduleHandleForm(store))
 
+		r.Get("/payments/new", handlers.PaymentForm(store))
+		r.Post("/payments/new", handlers.PaymentHandleForm(store))
+		r.Get("/payments/{id}", handlers.PaymentForm(store))
+		r.Post("/payments/{id}", handlers.PaymentHandleForm(store))
+		r.Get("/payments/{id}/delete", handlers.PaymentHandleDelete(store))
+
+		r.Get("/api/recurring-payments", api.RecurringPayments(store))
+		r.Get("/api/payments", api.Payments(svc))
+		r.Get("/api/payments-for-schedule", api.PaymentsForSchedule)
+		r.Get("/api/header-user", api.HeaderUser(conf.SimulateUser))
+	})
 	server := &http.Server{
 		Addr:         ":8080",
 		Handler:      router,

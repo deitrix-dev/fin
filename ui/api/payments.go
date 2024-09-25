@@ -1,71 +1,92 @@
 package api
 
 import (
-	"fmt"
 	"iter"
 	"net/http"
-	"strconv"
 	"time"
 
 	"github.com/deitrix/fin"
+	"github.com/deitrix/fin/pkg/date"
+	"github.com/deitrix/fin/pkg/form"
 	"github.com/deitrix/fin/pkg/iterx"
 	"github.com/deitrix/fin/pkg/pointer"
 	"github.com/deitrix/fin/ui"
 	"github.com/deitrix/fin/ui/components"
 )
 
-func Payments(store fin.Store) http.HandlerFunc {
+type PaymentsInputs struct {
+	Filter             string
+	Search             string
+	Offset             uint
+	RecurringPaymentID string
+	Source             string
+}
+
+func PaymentsFields(in *PaymentsInputs) form.Fields {
+	return form.Fields{
+		"paymentFilter":    form.String(&in.Filter),
+		"paymentSearch":    form.String(&in.Search),
+		"offset":           form.Uint(&in.Offset),
+		"recurringPayment": form.String(&in.RecurringPaymentID),
+		"source":           form.String(&in.Source),
+	}
+}
+
+func Payments(svc *fin.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var offset int
-		if s := r.URL.Query().Get("offset"); s != "" {
-			var err error
-			offset, err = strconv.Atoi(s)
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusBadRequest)
-				return
-			}
+		var in PaymentsInputs
+		fields := PaymentsFields(&in)
+		if err := form.Decode(refererQuery(r), fields); err != nil {
+			http.Error(w, err.Error(), http.StatusBadRequest)
+			return
 		}
 
-		q := r.URL.Query().Get("q")
-		recurringPaymentID := r.URL.Query().Get("recurringPayment")
-
-		var paymentIter iter.Seq[fin.Payment]
-		if recurringPaymentID == "" {
-			rps, err := iterx.CollectErr(fin.PageIter(fin.RecurringPaymentsQuery{
-				Filter: fin.RecurringPaymentFilter{
-					Search: q,
-				},
-			}, 100, store.RecurringPayments))
-			if err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
+		var paymentIter iter.Seq2[fin.Payment, error]
+		if in.RecurringPaymentID == "" {
+			var query fin.PaymentsQuery
+			query.Filter.Search = in.Search
+			switch in.Filter {
+			case "paymentsOnly":
+				query.PaymentsOnly = true
+			case "recurringPaymentsOnly":
+				query.RecurringPaymentsOnly = true
 			}
-			paymentIter = fin.PaymentsSince(rps, time.Now())
+			paymentIter = svc.Payments(r.Context(), query)
 		} else {
-			rp, err := store.RecurringPayment(r.Context(), recurringPaymentID)
+			rp, err := svc.RecurringPayment(r.Context(), in.RecurringPaymentID)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			paymentIter = rp.PaymentsSince(time.Now())
+			paymentIter = iterx.WithNilErr(rp.PaymentsSince(date.Midnight(time.Now())))
 		}
 
-		payments := iterx.CollectN(iterx.Skip(paymentIter, offset), 26)
-		var nextPage *int
+		payments, err := iterx.CollectNErr(iterx.SkipErr(paymentIter, int(in.Offset)), 26)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		var nextPage *uint
 		if len(payments) == 26 {
-			nextPage = pointer.To(offset + 25)
+			nextPage = pointer.To(in.Offset + 25)
 			payments = payments[:25]
 		}
 
-		fetchURL := fmt.Sprintf("/api/payments?oob=true&q=%s&offset=%d&recurringPayment=%s", q, offset+25, recurringPaymentID)
+		w.Header().Set("HX-Replace-URL", hxReplaceURL(r, fields, "paymentFilter", "paymentSearch"))
+
 		ui.Render(w, r, components.Payments(components.PaymentsInputs{
 			Header:      "Upcoming Payments",
 			Payments:    payments,
-			FetchURL:    fetchURL,
+			FetchURL:    "/api/payments?" + form.Encode(fields).Encode(),
 			NextPage:    nextPage,
-			Search:      recurringPaymentID == "",
-			Description: recurringPaymentID == "",
-			OOB:         r.URL.Query().Get("oob") == "true",
+			Search:      in.RecurringPaymentID == "",
+			Description: in.RecurringPaymentID == "",
+			OOB:         in.Source != "",
+			OOBSearch:   in.Source != "" && in.Source != "paymentSearch",
+			OOBFilter:   in.Source != "" && in.Source != "paymentFilter",
+			Exclude:     nil,
+			Filter:      in.Filter,
+			Query:       in.Search,
 		}))
 	}
 }
