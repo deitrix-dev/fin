@@ -79,6 +79,11 @@ func (r Repeat) String() string {
 			return fmt.Sprintf("every %d weeks on %s", r.Multiplier, r.Weekday)
 		}
 		return fmt.Sprintf("weekly on %s", r.Weekday)
+	case Day:
+		if r.Multiplier > 1 {
+			return fmt.Sprintf("every %d days", r.Multiplier)
+		}
+		return "daily"
 	}
 	return ""
 }
