@@ -11,7 +11,7 @@ import (
 	"github.com/deitrix/fin/pkg/iterx"
 	"github.com/deitrix/fin/pkg/pointer"
 	"github.com/deitrix/fin/ui"
-	"github.com/deitrix/fin/ui/components"
+	"github.com/deitrix/fin/ui/component"
 )
 
 type PaymentsInputs struct {
@@ -74,7 +74,7 @@ func Payments(svc *fin.Service) http.HandlerFunc {
 
 		w.Header().Set("HX-Replace-URL", hxReplaceURL(r, fields, "paymentFilter", "paymentSearch"))
 
-		ui.Render(w, r, components.Payments(components.PaymentsInputs{
+		ui.Render(w, r, component.Payments(component.PaymentsInputs{
 			Header:      "Upcoming Payments",
 			Payments:    payments,
 			FetchURL:    "/api/payments?" + form.Encode(fields).Encode(),

@@ -1,4 +1,4 @@
-package components
+package page
 
 import (
 	"fmt"
@@ -6,7 +6,7 @@ import (
 
 	"github.com/deitrix/fin"
 	. "github.com/deitrix/fin/pkg/gomponents/ext"
-	s "github.com/deitrix/fin/ui/components/styled"
+	s "github.com/deitrix/fin/ui/component/styled"
 	. "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
 	. "github.com/maragudk/gomponents/html"
@@ -57,6 +57,9 @@ func PaymentForm(accounts []string, payment fin.Payment) Node {
 						Label(Text("Amount"),
 							Input(Type("number"), Step("0.01"), Class("block w-full text-lg p-2 mt-1"), AutoComplete("off"), ID("amount"), Name("amount"), Required(),
 								Value(fmt.Sprint(float64(payment.Amount)/100)))),
+						Label(For("debt"), Text("Debt"),
+							Input(Type("checkbox"), Class("form-check-input"), ID("debt"), Name("debt"), Value("true"), If(payment.Debt, Checked())),
+						),
 						Button(Class("font-bold border-none bg-blue-600 text-white text-lg py-2 hover:bg-blue-500 cursor-pointer"),
 							Type("submit"), Text(createUpdate)),
 						Iff(payment.ID != nil, func() Node {

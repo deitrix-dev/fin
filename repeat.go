@@ -111,7 +111,7 @@ func (r Repeat) First(since time.Time) time.Time {
 	case Day:
 		days := int(since.Unix() / 86400)
 		days = days - (days+mul-r.Offset)%mul
-		d := time.Unix(int64(days*86400), 0).In(since.Location())
+		d := time.Unix(int64(days*86400), 0).UTC()
 		if d.Before(since) {
 			d = r.add(d, Day, mul)
 		}
@@ -119,7 +119,7 @@ func (r Repeat) First(since time.Time) time.Time {
 	case Week:
 		weeks := int(since.Unix() / 86400 / 7)
 		weeks = weeks - (weeks+mul-r.Offset)%mul
-		d := time.Unix(int64(weeks*7*86400), 0)
+		d := time.Unix(int64(weeks*7*86400), 0).UTC()
 		for d.Weekday() != mapWeekday[cmp.Or(r.Weekday, Monday)] {
 			d = d.Add(1 * 24 * time.Hour)
 		}

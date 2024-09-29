@@ -7,6 +7,6 @@ import (
 	"github.com/deitrix/fin/ui/page"
 )
 
-func Home(w http.ResponseWriter, r *http.Request) {
-	ui.Render(w, r, page.Home())
+func RecurringPayments(w http.ResponseWriter, r *http.Request) {
+	ui.Render(w, r, page.RecurringPayments())
 }

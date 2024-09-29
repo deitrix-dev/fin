@@ -1,10 +1,10 @@
-package components
+package component
 
 import (
 	"github.com/deitrix/fin"
 	. "github.com/deitrix/fin/pkg/gomponents/ext"
 	"github.com/deitrix/fin/pkg/murl"
-	s "github.com/deitrix/fin/ui/components/styled"
+	s "github.com/deitrix/fin/ui/component/styled"
 	. "github.com/maragudk/gomponents"
 	hx "github.com/maragudk/gomponents-htmx"
 	. "github.com/maragudk/gomponents/html"
@@ -43,7 +43,7 @@ func Payments(in PaymentsInputs) Node {
 						hx.Swap("outerHTML scroll:top"),
 						If(in.OOBFilter, hx.SwapOOB("outerHTML")),
 					),
-					Input(ID("paymentSearch"), Class("px-2 flex-grow max-w-[400px]"), Type("search"), AutoComplete("off"), Name("paymentSearch"), Placeholder("Search"),
+					Input(ID("paymentSearch"), Class("px-2"), Type("search"), AutoComplete("off"), Name("paymentSearch"), Placeholder("Search"),
 						hx.Get(murl.Mutate(in.FetchURL,
 							murl.RemoveQuery("offset", "paymentSearch"),
 							murl.AddQuery("source", "paymentSearch"),
@@ -64,25 +64,27 @@ func Payments(in PaymentsInputs) Node {
 					If(in.Description, s.Th(Text("Description"))),
 					s.Th(Text("Account")),
 					s.Th(Text("Amount")),
-					If(in.Description, s.Th(Text("Actions"))),
 				),
 				TBody(
 					ID("paymentsContainer"),
 					Map(in.Payments, func(payment fin.Payment) Node {
 						return s.Tr(
 							s.Td(Textf("%s", payment.Date.Format("Mon 2 Jan 2006"))),
-							If(in.Description, s.Td(Text(payment.Description))),
+							Iff(in.Description, func() Node {
+								return s.Td(IfElsef(payment.ID != nil,
+									func() Node {
+										return s.Link(s.Primary.Text(), Href("/payments/"+*payment.ID), Text(payment.Description))
+									},
+									func() Node {
+										return s.Link(s.Primary.Text(),
+											Href("/recurring-payments/"+payment.RecurringPayment.ID),
+											Text(payment.Description),
+										)
+									},
+								))
+							}),
 							s.Td(Text(payment.AccountID)),
-							s.Td(Textf("£%.2f", float64(payment.Amount)/100)),
-							If(in.Description, s.Td(Div(Class("flex gap-3 justify-center"),
-								Iff(payment.ID != nil, func() Node {
-									return Group{
-										s.Link(s.Primary.Text(), Href("/payments/"+*payment.ID), Text("edit")),
-										s.Link(s.Danger.Text(), Href("/payments/"+*payment.ID+"/delete"), Text("delete"),
-											Confirm("Are you sure you want to delete this payment")),
-									}
-								}),
-							))),
+							s.Td(Text(fin.FormatCurrencyGBP(payment.Amount))),
 						)
 					}),
 				),

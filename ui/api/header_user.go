@@ -5,7 +5,7 @@ import (
 
 	"github.com/deitrix/fin/auth"
 	"github.com/deitrix/fin/ui"
-	"github.com/deitrix/fin/ui/components"
+	"github.com/deitrix/fin/ui/component"
 )
 
 func HeaderUser(simulateUser string) http.HandlerFunc {
@@ -13,10 +13,10 @@ func HeaderUser(simulateUser string) http.HandlerFunc {
 		profile, ok := auth.ProfileFromContext(r.Context())
 		if !ok {
 			if simulateUser != "" {
-				ui.Render(w, r, components.HeaderUser(simulateUser))
+				ui.Render(w, r, component.HeaderUser(simulateUser))
 			}
 			return
 		}
-		ui.Render(w, r, components.HeaderUser(profile["email"].(string)))
+		ui.Render(w, r, component.HeaderUser(profile["email"].(string)))
 	}
 }

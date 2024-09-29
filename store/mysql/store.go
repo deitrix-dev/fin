@@ -153,7 +153,7 @@ func (s *Store) DeleteRecurringPayment(ctx context.Context, id string) error {
 var paymentsTable = goqu.T("payments")
 
 var selectPayments = mySQL.
-	Select("id", "description", "date", "amount", "account_id", "recurring_payment_id").
+	Select("id", "description", "date", "amount", "debt", "account_id", "recurring_payment_id").
 	From(paymentsTable)
 
 func scanPayment(row sqlg.Row) (p fin.Payment, err error) {
@@ -162,6 +162,7 @@ func scanPayment(row sqlg.Row) (p fin.Payment, err error) {
 		&p.Description,
 		&p.Date,
 		&p.Amount,
+		&p.Debt,
 		&p.AccountID,
 		&p.RecurringPaymentID,
 	)
@@ -175,11 +176,11 @@ func (s *Store) Payment(ctx context.Context, id string) (fin.Payment, error) {
 
 func paymentFilter(filter fin.PaymentFilter) []exp.Expression {
 	var exprs []exp.Expression
-	if filter.After != nil {
-		exprs = append(exprs, goqu.C("date").Gt(*filter.After))
+	if !filter.After.IsZero() {
+		exprs = append(exprs, goqu.C("date").Gt(filter.After))
 	}
-	if filter.Before != nil {
-		exprs = append(exprs, goqu.C("date").Lt(*filter.Before))
+	if !filter.Before.IsZero() {
+		exprs = append(exprs, goqu.C("date").Lt(filter.Before))
 	}
 	if filter.Search != "" {
 		exprs = append(exprs, goqu.C("description").ILike("%"+filter.Search+"%"))
@@ -207,6 +208,7 @@ func paymentRow(p fin.Payment) goqu.Record {
 		"description":          p.Description,
 		"date":                 p.Date,
 		"amount":               p.Amount,
+		"debt":                 p.Debt,
 		"account_id":           p.AccountID,
 		"recurring_payment_id": p.RecurringPaymentID,
 	}

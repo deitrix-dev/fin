@@ -72,10 +72,10 @@ func (f RecurringPaymentFilter) Validate() error {
 // PaymentsQuery holds options and filters for querying payments.
 type PaymentsQuery struct {
 	Filter                PaymentFilter `json:"filter"`
-	RecurringPaymentsOnly bool
-	PaymentsOnly          bool
-	Offset                uint `json:"offset"`
-	Limit                 uint `json:"limit"`
+	RecurringPaymentsOnly bool          `json:"recurringPaymentsOnly"`
+	PaymentsOnly          bool          `json:"paymentsOnly"`
+	Offset                uint          `json:"offset"`
+	Limit                 uint          `json:"limit"`
 }
 
 func (q PaymentsQuery) WithPage(offset, limit uint) PaymentsQuery {
@@ -93,17 +93,17 @@ func (q PaymentsQuery) Validate() error {
 }
 
 type PaymentFilter struct {
-	After      *time.Time `json:"after"`
-	Before     *time.Time `json:"before"`
-	Search     string     `json:"search"`
-	AccountIDs []string   `json:"accountIds"`
+	After      time.Time `json:"after"`
+	Before     time.Time `json:"before"`
+	Search     string    `json:"search"`
+	AccountIDs []string  `json:"accountIds"`
 }
 
 func (f PaymentFilter) Validate() error {
 	return v.ValidateStruct(&f,
 		v.Field(&f.After,
-			v.When(f.After != nil && f.Before != nil, v.By(func(min any) error {
-				return v.Validate(min, v.Min(*f.Before).Error("must be no later than before"))
+			v.When(!f.After.IsZero() && !f.Before.IsZero(), v.By(func(min any) error {
+				return v.Validate(min, v.Min(f.Before).Error("must be no later than before"))
 			})),
 		),
 		v.Field(&f.AccountIDs, v.Each(v.Required, is.UUIDv4)),

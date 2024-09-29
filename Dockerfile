@@ -8,6 +8,7 @@ RUN npm install
 
 COPY . .
 
+RUN npx rollup -c
 RUN npx tailwindcss -i input.css -o web/assets/style.css
 
 FROM golang:1.23 as build
@@ -24,8 +25,8 @@ RUN go mod download
 
 COPY . .
 COPY --from=assets /opt/fin/web/assets/style.css web/assets/style.css
+COPY --from=assets /opt/fin/web/assets/index.js web/assets/index.js
 
-RUN go generate ./...
 RUN CGO_ENABLED=0 go build -o ./bin/finserve ./cmd/finserve
 
 VOLUME /var/lib/fin

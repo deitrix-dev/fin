@@ -1,10 +1,10 @@
 package fin
 
 import (
-	"fmt"
 	"iter"
 	"time"
 
+	"github.com/deitrix/fin/pkg/date"
 	"github.com/deitrix/fin/pkg/iterx"
 )
 
@@ -15,10 +15,6 @@ type PaymentSchedule struct {
 	Amount    int        `json:"amount"`
 	AccountID string     `json:"accountId"`
 	Account   *Account   `json:"account,omitempty"`
-}
-
-func (s PaymentSchedule) AmountGBP() string {
-	return fmt.Sprintf("£%.2f", float64(s.Amount)/100)
 }
 
 func (s PaymentSchedule) PaymentsSince(since time.Time) iter.Seq[Payment] {
@@ -55,6 +51,41 @@ type RecurringPayment struct {
 	Schedules []PaymentSchedule `json:"schedules"`
 }
 
+func (rp RecurringPayment) IsFinite() bool {
+	for _, s := range rp.Schedules {
+		if s.StartDate == nil || s.EndDate == nil {
+			return false
+		}
+	}
+	return true
+}
+
+func (rp RecurringPayment) RemainingAmount() int {
+	if !rp.Enabled {
+		return 0
+	}
+	remaining := 0
+	for _, s := range rp.Schedules {
+		for p := range s.PaymentsSince(date.Midnight(time.Now())) {
+			remaining += p.Amount
+		}
+	}
+	return remaining
+}
+
+func (rp RecurringPayment) TotalAmount() int {
+	if !rp.Enabled {
+		return 0
+	}
+	remaining := 0
+	for _, s := range rp.Schedules {
+		for p := range s.PaymentsSince(time.Time{}) {
+			remaining += p.Amount
+		}
+	}
+	return remaining
+}
+
 func (rp *RecurringPayment) NextPayment() *Payment {
 	for payment := range rp.PaymentsSince(time.Now()) {
 		return &payment
@@ -83,6 +114,7 @@ func withRecurringPaymentSeq(rp *RecurringPayment, seq iter.Seq[Payment]) iter.S
 			p.RecurringPaymentID = &rp.ID
 			p.RecurringPayment = rp
 			p.Description = rp.Name
+			p.Debt = rp.Debt
 			if !yield(p) {
 				return
 			}

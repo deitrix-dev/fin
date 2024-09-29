@@ -9,7 +9,7 @@ import (
 	"github.com/deitrix/fin/pkg/iterx"
 	"github.com/deitrix/fin/pkg/pointer"
 	"github.com/deitrix/fin/ui"
-	"github.com/deitrix/fin/ui/components"
+	"github.com/deitrix/fin/ui/component"
 )
 
 type ScheduleFormInput struct {
@@ -100,7 +100,7 @@ func PaymentsForSchedule(w http.ResponseWriter, r *http.Request) {
 		payments = payments[:25]
 	}
 	fetchURL := "/api/payments-for-schedule?oob=true&" + form.Encode(formFields).Encode()
-	ui.Render(w, r, components.Payments(components.PaymentsInputs{
+	ui.Render(w, r, component.Payments(component.PaymentsInputs{
 		Header:   "Payments Preview",
 		Payments: payments,
 		FetchURL: fetchURL,

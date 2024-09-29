@@ -11,6 +11,7 @@ type Payment struct {
 	Description        string            `json:"description"`
 	Date               time.Time         `json:"date"`
 	Amount             int               `json:"amount"`
+	Debt               bool              `json:"debt"`
 	AccountID          string            `json:"accountId"`
 	Account            *Account          `json:"account,omitempty"`
 	RecurringPaymentID *string           `json:"recurringPaymentId,omitempty"`

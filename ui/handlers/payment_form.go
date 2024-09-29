@@ -9,7 +9,7 @@ import (
 	"github.com/deitrix/fin/pkg/form"
 	"github.com/deitrix/fin/pkg/pointer"
 	"github.com/deitrix/fin/ui"
-	"github.com/deitrix/fin/ui/components"
+	"github.com/deitrix/fin/ui/page"
 	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 )
@@ -38,6 +38,7 @@ func PaymentFormFields(in *PaymentFormInput) form.Fields {
 		"description":  form.String(&in.Description),
 		"date":         form.Time(&in.Date, "2006-01-02"),
 		"amount":       form.Float(&in.Amount),
+		"debt":         form.Bool(&in.Debt),
 		"account":      form.String(&in.AccountID),
 		"newAccount":   form.String(&in.NewAccount),
 		"formPriority": form.Bool(&in.FormPriority),
@@ -79,7 +80,7 @@ func PaymentForm(store fin.Store) http.HandlerFunc {
 			}
 		}
 
-		ui.Render(w, r, components.PaymentForm(accounts, in.Payment))
+		ui.Render(w, r, page.PaymentForm(accounts, in.Payment))
 	}
 }
 

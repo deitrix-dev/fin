@@ -8,7 +8,7 @@ import (
 	"github.com/deitrix/fin"
 	"github.com/deitrix/fin/pkg/form"
 	"github.com/deitrix/fin/ui"
-	"github.com/deitrix/fin/ui/components"
+	"github.com/deitrix/fin/ui/component"
 )
 
 type RecurringPaymentsInputs struct {
@@ -37,7 +37,7 @@ func RecurringPayments(store fin.Store) http.HandlerFunc {
 
 		w.Header().Set("HX-Replace-URL", hxReplaceURL(r, RecurringPaymentsFields(&in), "recurringPaymentSearch"))
 
-		ui.Render(w, r, components.RecurringPayments(rps, in.Search))
+		ui.Render(w, r, component.RecurringPayments(rps, in.Search))
 	}
 }
 

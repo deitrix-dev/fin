@@ -5,7 +5,7 @@ import (
 
 	"github.com/deitrix/fin"
 	"github.com/deitrix/fin/ui"
-	"github.com/deitrix/fin/ui/components"
+	"github.com/deitrix/fin/ui/page"
 	"github.com/go-chi/chi/v5"
 )
 
@@ -17,9 +17,7 @@ func RecurringPayment(store fin.Store) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		ui.Render(w, r, components.Layout(rp.Name,
-			components.RecurringPayment(rp),
-		))
+		ui.Render(w, r, page.RecurringPayment(rp))
 	}
 }
 
@@ -30,7 +28,7 @@ func RecurringPaymentUpdateForm(store fin.Store) http.HandlerFunc {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		ui.Render(w, r, components.RecurringPaymentForm(rp))
+		ui.Render(w, r, page.RecurringPaymentForm(rp))
 	}
 }
 
@@ -53,7 +51,7 @@ func RecurringPaymentHandleUpdateForm(store fin.Store) http.HandlerFunc {
 			return
 		}
 		w.Header().Set("HX-Trigger", "reload")
-		ui.Render(w, r, components.RecurringPaymentForm(rp))
+		ui.Render(w, r, page.RecurringPaymentForm(rp))
 	}
 }
 

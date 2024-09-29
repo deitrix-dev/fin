@@ -1,7 +1,7 @@
-package components
+package component
 
 import (
-	s "github.com/deitrix/fin/ui/components/styled"
+	s "github.com/deitrix/fin/ui/component/styled"
 	. "github.com/maragudk/gomponents"
 	. "github.com/maragudk/gomponents/html"
 )

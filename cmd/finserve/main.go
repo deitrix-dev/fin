@@ -13,6 +13,8 @@ import (
 
 	"github.com/deitrix/fin"
 	"github.com/deitrix/fin/auth"
+	"github.com/deitrix/fin/store/cache"
+	finmysql "github.com/deitrix/fin/store/mysql"
 	"github.com/deitrix/fin/ui/api"
 	"github.com/deitrix/fin/ui/handlers"
 	"github.com/deitrix/fin/web/assets"
@@ -20,9 +22,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-sql-driver/mysql"
+	"github.com/lmittmann/tint"
 	"golang.org/x/crypto/ssh/terminal"
 
-	finmysql "github.com/deitrix/fin/store/mysql"
 	slogchi "github.com/samber/slog-chi"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -74,16 +76,18 @@ var defaultHeaders = []string{
 	"X-Forwarded-For",
 }
 
-func main() {
-	logOpt := &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}
+var logLevel = slog.LevelDebug
 
+func main() {
 	var logHandler slog.Handler
 	if terminal.IsTerminal(int(os.Stdout.Fd())) {
-		logHandler = slog.NewTextHandler(os.Stdout, logOpt)
+		logHandler = tint.NewHandler(os.Stdout, &tint.Options{
+			Level: logLevel,
+		})
 	} else {
-		logHandler = slog.NewJSONHandler(os.Stdout, logOpt)
+		logHandler = slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
+			Level: logLevel,
+		})
 	}
 
 	logger := slog.New(logHandler)
@@ -105,7 +109,7 @@ func main() {
 		log.Fatalf("opening database: %v", err)
 	}
 
-	store := finmysql.NewStore(db)
+	store := cache.NewStore(finmysql.NewStore(db))
 	svc := fin.NewService(store)
 
 	router := chi.NewRouter()
@@ -119,11 +123,15 @@ func main() {
 	router.Get("/assets/style.css", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFileFS(w, r, assets.FS, "style.css")
 	})
+	router.Get("/assets/index.js", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFileFS(w, r, assets.FS, "index.js")
+	})
 
 	router.Group(func(r chi.Router) {
 		r.Use(middleware.SetHeader("Cache-Control", "no-store"))
 
 		r.Get("/", handlers.Home)
+		r.Get("/recurring-payments", handlers.RecurringPayments)
 		r.Get("/recurring-payments/{id}", handlers.RecurringPayment(store))
 		r.Get("/recurring-payments/{id}/form", handlers.RecurringPaymentUpdateForm(store))
 		r.Post("/recurring-payments/{id}/form", handlers.RecurringPaymentHandleUpdateForm(store))
@@ -142,10 +150,11 @@ func main() {
 		r.Post("/payments/{id}", handlers.PaymentHandleForm(store))
 		r.Get("/payments/{id}/delete", handlers.PaymentHandleDelete(store))
 
-		r.Get("/api/recurring-payments", api.RecurringPayments(store))
+		r.Get("/api/header-user", api.HeaderUser(conf.SimulateUser))
+		r.Get("/api/month-summaries", api.MonthSummaries(svc))
 		r.Get("/api/payments", api.Payments(svc))
 		r.Get("/api/payments-for-schedule", api.PaymentsForSchedule)
-		r.Get("/api/header-user", api.HeaderUser(conf.SimulateUser))
+		r.Get("/api/recurring-payments", api.RecurringPayments(store))
 	})
 
 	server := &http.Server{
