@@ -87,7 +87,7 @@ func (rp RecurringPayment) TotalAmount() int {
 }
 
 func (rp *RecurringPayment) NextPayment() *Payment {
-	for payment := range rp.PaymentsSince(time.Now()) {
+	for payment := range rp.PaymentsSince(date.Midnight(time.Now())) {
 		return &payment
 	}
 	return nil
