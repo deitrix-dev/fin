@@ -18,6 +18,7 @@ type ScheduleFormInput struct {
 	Amount         float64
 	StartDate      time.Time
 	EndDate        time.Time
+	Count          uint
 	Repeat         string
 	DayOfMonth     int
 	DayOfWeek      string
@@ -68,6 +69,7 @@ func ScheduleForm(in *ScheduleFormInput) form.Fields {
 		"amount":         form.Float(&in.Amount),
 		"startDate":      form.Time(&in.StartDate, "2006-01-02"),
 		"endDate":        form.Time(&in.EndDate, "2006-01-02"),
+		"count":          form.Uint(&in.Count),
 		"repeat":         form.String(&in.Repeat),
 		"dayOfMonth":     form.Int(&in.DayOfMonth),
 		"dayOfWeek":      form.String(&in.DayOfWeek),

@@ -90,7 +90,7 @@ func ScheduleForm(store fin.Store) http.HandlerFunc {
 				schedule.AccountID = accounts[0]
 			}
 		}
-		ui.Render(w, r, page.ScheduleForm(accounts, rp, schedule, index))
+		ui.Render(w, r, page.ScheduleForm(accounts, rp, schedule, in, index))
 	}
 }
 
