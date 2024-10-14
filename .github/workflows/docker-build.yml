@@ -20,7 +20,7 @@ env:
 jobs:
   push_to_registry:
     name: Push Docker image to Docker Hub
-    runs-on: warp-ubuntu-latest-x64-2x;snapshot.key=fin
+    runs-on: warp-custom-fin;snapshot.key=fin
     permissions:
       packages: write
       contents: read

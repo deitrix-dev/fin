@@ -7,6 +7,7 @@ import (
 	"github.com/dustin/go-humanize"
 )
 
+// Random code change TODO remove
 func FormatCurrencyGBP(amount int) string {
 	if amount < 0 {
 		return fmt.Sprintf("-£%s", FormatCurrency(-amount))
