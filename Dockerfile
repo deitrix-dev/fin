@@ -21,13 +21,15 @@ WORKDIR /opt/fin
 
 COPY go.mod go.sum ./
 
-RUN go mod download
+RUN --mount=type=cache,target=/root/go/pkg/mod \
+    go mod download
 
 COPY . .
 COPY --from=assets /opt/fin/web/assets/style.css web/assets/style.css
 COPY --from=assets /opt/fin/web/assets/index.js web/assets/index.js
 
-RUN CGO_ENABLED=0 go build -o ./bin/finserve ./cmd/finserve
+RUN --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 go build -o ./bin/finserve ./cmd/finserve
 
 VOLUME /var/lib/fin
 
